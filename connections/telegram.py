@@ -49,6 +49,12 @@ class TelegramListener(Listener):
     async def query(self):
         date = datetime.datetime.now().strftime('%Y-%m-%d')
         path = os.path.join(self.storage_path, date+".txt")
+        if not os.path.exists(path):
+            yesterday = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime('%Y-%m-%d')
+            yesterday_path = os.path.join(self.storage_path, yesterday+".txt")
+            if os.path.exists(yesterday_path):
+                path = yesterday_path
+
         file_storage = SaveToFile(path)
         previous_messages = file_storage.load()
 
