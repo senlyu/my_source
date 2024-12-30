@@ -6,6 +6,7 @@ import asyncio
 from connections.telegram import TelegramListener
 from daily_jobs.report_job import ReportJob
 from export.discord import DiscordExporter
+from connections.gemini import GeminiConnect
 
 
 def init_telegram_listener_from_config():
@@ -28,19 +29,37 @@ def init_discord_exporter_from_config():
         config = json.load(f)
 
     discord_config = config.get('discord')
-    discord_channel_url = discord_config.get('url')
+    discord_channel_url = discord_config.get('url_prod')
 
     return DiscordExporter(discord_channel_url)
+
+def init_gemini_connect_from_config():
+    with open('config.json', 'r') as f:
+        config = json.load(f)
+
+    gemini_config = config.get('gemini')
+    gemini_api_key = gemini_config.get('api_key')
+
+    return GeminiConnect(gemini_api_key)
+
+def init_main_job_from_config():
+    with open('config.json', 'r') as f:
+        config = json.load(f)
+
+    storage_path = config.get('storage').get('path').get('telegram')
+
+    return ReportJob("main report", "13:30:00", init_discord_exporter_from_config(), init_gemini_connect_from_config(), storage_path)
+
     
 async def main():
-    # telegram_listeners = init_telegram_listener_from_config()
-    # telegram_tasks = [telegram_listener.start() for telegram_listener in telegram_listeners]
+    telegram_listeners = init_telegram_listener_from_config()
+    telegram_tasks = [telegram_listener.start() for telegram_listener in telegram_listeners]
 
     # upload task
-    main_job = ReportJob("main report", "12:34:00", init_discord_exporter_from_config())
+    main_job = init_main_job_from_config()
 
     # all_tasks = telegram_tasks
-    all_tasks = [main_job.start()]
+    all_tasks = telegram_tasks + [main_job.start()]
 
     await asyncio.gather(*all_tasks)
 
