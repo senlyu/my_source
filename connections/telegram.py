@@ -108,7 +108,7 @@ class TelegramListener(Listener):
                     date = date.replace(year=datetime.datetime.now().year)
                     date = date.date()
                     today = datetime.datetime.today().date()
-                    if date == today:
+                    if date >= today:
                         filtered.append(message)
 
                 except Exception as e:
