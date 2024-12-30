@@ -19,7 +19,7 @@ def init_telegram_listener_from_config():
     storage_path = config.get('storage').get('path').get('telegram')
     pathlib.Path(storage_path).mkdir(parents=True, exist_ok=True) 
 
-    return [TelegramListener(telegram_app_id, telegram_app_hash, telegram_client_name, storage_path, channel, 10) for channel in telegram_channels]
+    return [TelegramListener(telegram_app_id, telegram_app_hash, telegram_client_name, storage_path, channel, 60) for channel in telegram_channels]
 
 async def main():
     telegram_listeners = init_telegram_listener_from_config()
