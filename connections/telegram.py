@@ -25,8 +25,13 @@ class TelegramListener(Listener):
                 print('connected')
             except Exception as e:
                 print(e)
+                await asyncio.sleep(60)
 
-        await self.query()
+        all, previous_messages = await self.query()
+        filtered = self.filter(all, previous_messages)
+        for message in filtered:
+            self.save(message[0], message[1])
+        print("finished one job")
 
     async def query_by_date(self, date):
         yesterday = date - datetime.timedelta(days=1)
@@ -68,6 +73,10 @@ class TelegramListener(Listener):
             print('query some')
             all = await self.query_some()
 
+        print("finished one query")
+        return all, previous_messages
+
+    def filter(self, all, previous_messages):
         filtered_all_by_channel = self.filter_by_channel_type(self.channel_name, all)
 
         all_set = set()
@@ -81,11 +90,7 @@ class TelegramListener(Listener):
 
         previous_messages_id = [x[0] for x in previous_messages]
         all_filtered_from_previous = list(filter(lambda x: x[0] not in previous_messages_id, all_self_dedup))
-        all_filtered_sorted = sorted(all_filtered_from_previous, key=lambda x: x[0])
-        for message in all_filtered_sorted:
-            self.save(message[0], message[1])
-
-        print("finished one query")
+        return sorted(all_filtered_from_previous, key=lambda x: x[0])
 
     def save(self, id, data):
         date = datetime.datetime.now().strftime('%Y-%m-%d')
