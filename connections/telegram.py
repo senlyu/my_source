@@ -4,6 +4,7 @@ import datetime
 from telethon import TelegramClient
 from storage.save_to_file import SaveToFile
 from connections.listener import Listener
+from logging_to_file import Logging
 
 class TelegramListener(Listener):
     def __init__(self, app_id, app_hash, client_name, storage_path, channel_name, query_time=60*5):
@@ -22,16 +23,16 @@ class TelegramListener(Listener):
         while not self.client.is_connected():
             try:
                 await self.client.connect()
-                print('connected')
+                Logging.log('connected')
             except Exception as e:
-                print(e)
+                Logging.log(e)
                 await asyncio.sleep(60)
 
         all, previous_messages = await self.query()
         filtered = self.filter(all, previous_messages)
         for message in filtered:
             self.save(message[0], message[1])
-        print(f"finished one job, saved {len(filtered)} messages")
+        Logging.log(f"finished one job, saved {len(filtered)} messages")
 
     async def query_by_date(self, date):
         yesterday = date - datetime.timedelta(days=1)
@@ -67,13 +68,13 @@ class TelegramListener(Listener):
         if len(previous_messages) > 0:
             sorted_messages = sorted(previous_messages, key=lambda x: x[0], reverse=True)
             max_id = sorted_messages[0][0]
-            print('query by max_id')
+            Logging.log('query by max_id')
             all = await self.query_min_id(max_id)
         else:
-            print('query some')
+            Logging.log('query some')
             all = await self.query_some()
 
-        print("finished one query")
+        Logging.log("finished one query")
         return all, previous_messages
 
     def filter(self, all, previous_messages):
@@ -117,7 +118,7 @@ class TelegramListener(Listener):
                         filtered.append(message)
 
                 except Exception as e:
-                    print(e)
+                    Logging.log(e)
                     filtered.append(message)
 
             return filtered

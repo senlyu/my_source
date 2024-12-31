@@ -1,6 +1,7 @@
 import asyncio
 from datetime import datetime, timedelta
 import pytz
+from logging_to_file import Logging
 
 class DailyJob:
 
@@ -27,7 +28,7 @@ class DailyJob:
                 target_datetime += timedelta(days=1)
 
             delay = (target_datetime - now).total_seconds()
-            print(f"{self.get_job_name()} Task scheduled for: {target_datetime}. Delay: {delay} seconds.")
+            Logging.log(f"{self.get_job_name()} Task scheduled for: {target_datetime}. Delay: {delay} seconds.")
             
             await asyncio.sleep(delay)  # Wait until the target time
             await self.job()             # Run the task

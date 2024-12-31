@@ -1,5 +1,6 @@
 import json
 import os
+from logging_to_file import Logging
 
 class SaveToFile:
     def __init__(self, file_name):
@@ -21,6 +22,6 @@ class SaveToFile:
                 lines = [(id, json.loads(data)) for id, data in [line.split('|') for line in f.readlines()]]
                 f.close()
         except Exception as e:
-            print(e)
+            Logging.log(e)
             lines = []
         return lines
