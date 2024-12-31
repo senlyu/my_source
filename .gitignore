@@ -2,3 +2,5 @@ config.json
 my-client.session
 my-client.session-journal
 /history
+log
+/log

@@ -31,7 +31,7 @@ class TelegramListener(Listener):
         filtered = self.filter(all, previous_messages)
         for message in filtered:
             self.save(message[0], message[1])
-        print("finished one job")
+        print(f"finished one job, saved {len(filtered)} messages")
 
     async def query_by_date(self, date):
         yesterday = date - datetime.timedelta(days=1)
