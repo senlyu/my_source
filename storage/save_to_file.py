@@ -17,6 +17,10 @@ class SaveToFile:
                 f.close()
 
     def load(self):
+        if not os.path.exists(self.file_name):
+            with open(self.file_name, 'w+', encoding="utf-8") as f:
+                f.write('')
+                f.close()
         try:
             with open(self.file_name, 'r', encoding="utf-8") as f:
                 lines = [(id, json.loads(data)) for id, data in [line.split('|') for line in f.readlines()]]

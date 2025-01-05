@@ -5,6 +5,11 @@ from datetime import datetime
 class Logging:
 
     @staticmethod
+    def clean():
+        with open("log.txt", "a") as f:
+            f.truncate(0)
+
+    @staticmethod
     def log(*args, **kwargs):
         time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 

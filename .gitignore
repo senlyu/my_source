@@ -4,3 +4,4 @@ my-client.session-journal
 /history
 log.txt
 /log
+.python-version

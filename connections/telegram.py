@@ -5,6 +5,7 @@ from telethon import TelegramClient
 from storage.save_to_file import SaveToFile
 from connections.listener import Listener
 from logging_to_file import Logging
+import asyncio
 
 class TelegramListener(Listener):
     def __init__(self, app_id, app_hash, client_name, storage_path, channel_name, query_time=60*5):

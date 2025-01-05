@@ -7,7 +7,7 @@ from connections.telegram import TelegramListener
 from daily_jobs.report_job import ReportJob
 from export.discord import DiscordExporter
 from connections.gemini import GeminiConnect
-
+from logging_to_file import Logging
 
 def init_telegram_listener_from_config():
     with open('config.json', 'r') as f:
@@ -64,4 +64,5 @@ async def main():
     await asyncio.gather(*all_tasks)
 
 if __name__ == "__main__":
+    Logging.clean()
     asyncio.run(main())
