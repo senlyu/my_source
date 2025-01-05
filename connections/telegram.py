@@ -23,7 +23,7 @@ class TelegramListener(Listener):
     async def main(self):
         while not self.client.is_connected():
             try:
-                await self.client.connect()
+                res = await self.client.start()
                 Logging.log('connected')
             except Exception as e:
                 Logging.log(e)
