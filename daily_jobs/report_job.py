@@ -3,6 +3,7 @@ from daily_jobs.daily_job import DailyJob
 import pytz
 from datetime import datetime, timedelta
 import os
+from logging_to_file import Logging
 
 class ReportJob(DailyJob):
     def __init__(self, job_name, target_time, exporter, analyzer, storage_path):
@@ -27,6 +28,7 @@ class ReportJob(DailyJob):
 
         response = self.analyzer.get_result_for_files(all_path)
         msg = response.text
+        Logging.log(msg)
         res = self.exporter.export(f"{msg}")
         self.exporter.export(f"{response.usage_metadata}")
         self.exporter.export(f"{now} my source daily job end")
