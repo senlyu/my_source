@@ -48,7 +48,7 @@ def init_main_job_from_config():
 
     storage_path = config.get('storage').get('path').get('telegram')
 
-    return ReportJob("main report", "13:30:00", init_discord_exporter_from_config(), init_gemini_connect_from_config(), storage_path)
+    return ReportJob("main report", "18:00:00", init_discord_exporter_from_config(), init_gemini_connect_from_config(), storage_path)
 
     
 async def main():
