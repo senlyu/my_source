@@ -14,7 +14,7 @@ class GeminiConnect:
                 doc_data += base64.standard_b64encode(doc_file.read()).decode("utf-8")
 
         genai.configure(api_key=self.api_key)
-        model = genai.GenerativeModel("gemini-2.5-pro-preview-03-25")
+        model = genai.GenerativeModel("gemini-1.5-flash")
 
         response = model.generate_content([{'mime_type': 'text/plain', 'data': doc_data}, self.PROMOT])
 
