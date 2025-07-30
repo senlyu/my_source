@@ -18,7 +18,7 @@ class TelegramListener(Listener):
         return self.query_time
 
     async def init_work(self):
-        pass
+        self.clean()
 
     async def main(self):
         while not self.client.is_connected():
@@ -99,6 +99,31 @@ class TelegramListener(Listener):
         path = os.path.join(self.storage_path, date+".txt")
         save_to_file = SaveToFile(path)
         save_to_file.save(id, data)
+
+    def clean(self):
+        date = datetime.datetime.now().strftime('%Y-%m-%d')
+        all_file_names = []
+        for root, dirs, files in os.walk(self.storage_path):
+            for file in files:
+                if file.lower().endswith('.txt'):  # Case-insensitive check
+                    full_path = os.path.join(root, file)
+                    if os.path.isfile(full_path):
+                        all_file_names.append([file, full_path])
+        delete_targets = []
+        for item in all_file_names:
+            file_name = item[0]
+            date_in_file = file_name.split('.')[0]
+            try:
+                date_obj_file = datetime.datetime.strptime(date_in_file, '%Y-%m-%d')
+            except Exception as e:
+                Logging.log(e)
+                continue
+            
+            if date_obj_file + datetime.timedelta(days=30) < datetime.datetime.now():
+                delete_targets.append(item[1])
+        for full_path in delete_targets:
+            os.remove(full_path)
+            Logging.log(f"remove file: {full_path}")
 
     def filter_by_channel_type(self, channel, messages):
         if channel == '@fnnew':
