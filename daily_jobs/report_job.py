@@ -27,8 +27,9 @@ class ReportJob(DailyJob):
         all_path = list(filter(lambda path: os.path.exists(path), [today_path, yesterday_path]))
 
         response = self.analyzer.get_result_for_files(all_path)
+        Logging.log(response)
+
         msg = response.text
-        Logging.log(msg)
         res = self.exporter.export(f"{msg}")
         self.exporter.export(f"{response.usage_metadata}")
         self.exporter.export(f"{now} my source daily job end")
