@@ -6,6 +6,8 @@ from storage.save_to_file import SaveToFile
 from connections.listener import Listener
 from logging_to_file import Logging
 import asyncio
+import traceback
+
 
 class TelegramListener(Listener):
     def __init__(self, app_id, app_hash, client_name, storage_path, channel_name, query_time=60*5):
@@ -13,6 +15,13 @@ class TelegramListener(Listener):
         self.client = TelegramClient(client_name, app_id, app_hash)
         self.storage_path = storage_path
         self.channel_name = channel_name
+    
+    def error_handle(self, e):
+        formatted_tb = traceback.format_tb(e.__traceback__)
+        for line in formatted_tb:
+            Logging.log(line.strip())
+        Logging.log(f"\nException Type: {type(e).__name__}")
+        Logging.log(f"Exception Message: {e}")
 
     def get_query_time(self):
         return self.query_time
@@ -134,6 +143,9 @@ class TelegramListener(Listener):
 
                 if text_content.startswith('#重要'):
                     text_content = text_content[3:].lstrip()
+                message_list = list(message)
+                message_list[1] = text_content
+                message = tuple(message_list)
 
                 try:
                     date = datetime.datetime.strptime(text_content[:5], '%m-%d')

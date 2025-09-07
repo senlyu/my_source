@@ -14,8 +14,11 @@ class Listener:
 
     async def runner(self):
         while True:
-            await self.main()
-            await asyncio.sleep(self.get_query_time())  
+            try:
+                await self.main()
+                await asyncio.sleep(self.get_query_time())  
+            except Exception as e:
+                self.error_handle(e)
 
     async def init_work(self):
         pass
@@ -23,5 +26,7 @@ class Listener:
     async def main(self):
         pass
 
+    def error_handle(self, e):
+        pass
 
 
