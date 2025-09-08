@@ -26,7 +26,7 @@ class ReportJob(DailyJob):
 
         all_path = list(filter(lambda path: os.path.exists(path), [today_path, yesterday_path]))
 
-        response = self.analyzer.get_result_for_files(all_path)
+        response = self.analyzer.get_result_from_models(all_path)
         Logging.log(response)
 
         msg = response.text
