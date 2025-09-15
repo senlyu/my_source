@@ -1,5 +1,5 @@
 import requests
-import pytz
+from connections.model_api import ModelAPI
 
 class DiscordExporter:
     def __init__(self, channel_url):
@@ -11,6 +11,10 @@ class DiscordExporter:
         for i in range(0, len(string), chunk_size):
             chunks.append(string[i:i + chunk_size])
         return chunks
+
+    def export_by_model(self, messages, type: ModelAPI):
+        result = type.get_chunk_by_split(messages)
+        return [ requests.post(self.channel_url, data={'content': m}) for m in result]
 
     def export(self, messages):
         if len(messages) <= 2000:
