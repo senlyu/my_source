@@ -1,15 +1,14 @@
-
-
 import json
 import pathlib
 import asyncio
+import sys
 from connections.telegram import TelegramListener
+from connections.gemini import GeminiConnect
 from daily_jobs.report_job import ReportJob
 from export.discord import DiscordExporter
-from connections.gemini import GeminiConnect
 from logging_to_file import Logging
 
-def init_telegram_listener_from_config():
+def init_telegram_listener_from_config(mode):
     with open('config.json', 'r') as f:
         config = json.load(f)
 
@@ -24,16 +23,16 @@ def init_telegram_listener_from_config():
 
     return [TelegramListener(telegram_app_id, telegram_app_hash, telegram_client_name, storage_path, channel, 60) for channel in telegram_channels]
 
-def init_discord_exporter_from_config():
+def init_discord_exporter_from_config(mode):
     with open('config.json', 'r') as f:
         config = json.load(f)
 
     discord_config = config.get('discord')
-    discord_channel_url = discord_config.get('url_prod')
+    discord_channel_url = discord_config.get('url_prod') if mode != 'dev' else discord_config.get('url_dev')
 
     return DiscordExporter(discord_channel_url)
 
-def init_gemini_connect_from_config():
+def init_gemini_connect_from_config(mode):
     with open('config.json', 'r') as f:
         config = json.load(f)
 
@@ -42,21 +41,21 @@ def init_gemini_connect_from_config():
 
     return GeminiConnect(gemini_api_key)
 
-def init_main_job_from_config():
+def init_main_job_from_config(mode):
     with open('config.json', 'r') as f:
         config = json.load(f)
 
     storage_path = config.get('storage').get('path').get('telegram')
 
-    return ReportJob("main report", "18:00:00", init_discord_exporter_from_config(), init_gemini_connect_from_config(), storage_path)
+    return ReportJob("main report", "18:00:00", init_discord_exporter_from_config(mode), init_gemini_connect_from_config(mode), storage_path)
 
     
-async def main():
-    telegram_listeners = init_telegram_listener_from_config()
+async def main(mode):
+    telegram_listeners = init_telegram_listener_from_config(mode)
     telegram_tasks = [telegram_listener.start() for telegram_listener in telegram_listeners]
 
     # upload task
-    main_job = init_main_job_from_config()
+    main_job = init_main_job_from_config(mode)
 
     # all_tasks = telegram_tasks
     all_tasks = telegram_tasks + [main_job.start()]
@@ -64,5 +63,7 @@ async def main():
     await asyncio.gather(*all_tasks)
 
 if __name__ == "__main__":
+    mode = sys.argv[1] if len(sys.argv) > 1 else None
+    Logging.log(mode)
     Logging.clean()
-    asyncio.run(main())
+    asyncio.run(main(mode))
