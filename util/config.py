@@ -45,7 +45,7 @@ class Config:
 
     def get_discord_config(self):
         discord_config = self.config.get('discord')
-        return discord_config.get('url_prod') if get_is_dev_mode() else discord_config.get('url_dev')
+        return discord_config.get('url_dev') if get_is_dev_mode() else discord_config.get('url_prod')
 
     def get_gemini_config(self):
         gemini_config = self.config.get('gemini')
