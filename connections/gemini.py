@@ -1,7 +1,7 @@
 import google.generativeai as genai
 import base64
 import time
-from logging_to_file import Logging
+from util.logging_to_file import Logging
 from typing import List
 from connections.model_api import ModelAPI
 

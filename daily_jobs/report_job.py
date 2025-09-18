@@ -3,7 +3,7 @@ from daily_jobs.daily_job import DailyJob
 import pytz
 from datetime import datetime, timedelta
 import os
-from logging_to_file import Logging
+from util.logging_to_file import Logging
 from connections.gemini import GeminiConnect
 
 class ReportJob(DailyJob):

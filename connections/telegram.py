@@ -1,10 +1,9 @@
-import json
 import os
 import datetime
 from telethon import TelegramClient
 from storage.save_to_file import SaveToFile
 from connections.listener import Listener
-from logging_to_file import Logging
+from util.logging_to_file import Logging
 import asyncio
 import traceback
 

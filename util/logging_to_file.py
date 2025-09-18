@@ -1,11 +1,22 @@
+"""
+Import secondly, be aware adding any dependency
+"""
 
 import os
 from datetime import datetime, timedelta
+from util.sys_env import get_is_dev_mode
 
 class Logging:
 
     @staticmethod
     def clean():
+        is_dev_mode = get_is_dev_mode()
+        if is_dev_mode:
+            file_name = os.path.join("./log.txt")
+            if os.path.isfile(file_name):
+                os.remove(file_name)
+            return
+
         storage_path = os.path.join("./log")
         date = datetime.now().strftime('%Y-%m-%d')
         all_file_names = []
@@ -35,8 +46,9 @@ class Logging:
     def log(*args, **kwargs):
         date = datetime.now().strftime("%Y-%m-%d")
         time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        is_dev_mode = get_is_dev_mode()
 
-        file_name = os.path.join("./log", date + ".txt")
+        file_name = os.path.join("./log", date + ".txt") if not is_dev_mode else os.path.join("./log.txt")
         if not os.path.exists(file_name):
             with open(file_name, 'w+', encoding="utf-8") as f:
                 s = time + ": " + (" ").join(str(arg) for arg in args)

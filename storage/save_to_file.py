@@ -1,6 +1,6 @@
 import json
 import os
-from logging_to_file import Logging
+from util.logging_to_file import Logging
 
 class SaveToFile:
     def __init__(self, file_name):

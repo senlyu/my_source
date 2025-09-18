@@ -1,9 +1,12 @@
 import asyncio
 from datetime import datetime, timedelta
 import pytz
-from logging_to_file import Logging
+from util.logging_to_file import Logging
 
 class DailyJob:
+    def __init__(self, job_name, target_time):
+        self.job_name = job_name
+        self.target_time = target_time
 
     def get_job_name(self):
         return self.job_name or ""
