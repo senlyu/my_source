@@ -51,3 +51,8 @@ class Config:
         gemini_config = self.config.get('gemini')
         return gemini_config.get('api_key')
 
+    def get_hexo_config(self):
+        hexo_config = self.config.get('hexo')
+        path = hexo_config.get('path')
+        post_path = hexo_config.get('post_path')
+        return (path, post_path)
