@@ -25,8 +25,8 @@ def init_discord_exporter_from_config(config):
     return DiscordExporter(discord_channel_url)
 
 def init_hexo_exporter_from_config(config):
-    (path, post_path) = config.get_hexo_config()
-    return HexoExporter(path, post_path)
+    (path, post_path, url_domain) = config.get_hexo_config()
+    return HexoExporter(path, post_path, url_domain, init_discord_exporter_from_config(config))
 
 def init_gemini_connect_from_config_format(config):
     gemini_api_key = config.get_gemini_config()
@@ -52,12 +52,12 @@ async def main():
     telegram_tasks = [telegram_listener.start() for telegram_listener in telegram_listeners]
 
     # upload task
-    discord_job = init_report_job_to_discord(config)
+    # discord_job = init_report_job_to_discord(config)
     hexo_job = init_report_job_to_hexo(config)
 
     # all_tasks = telegram_tasks
     all_tasks = telegram_tasks + [
-        discord_job.start(), 
+        # discord_job.start(), 
         hexo_job.start()
     ]
 

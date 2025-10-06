@@ -55,4 +55,5 @@ class Config:
         hexo_config = self.config.get('hexo')
         path = hexo_config.get('path')
         post_path = hexo_config.get('post_path')
-        return (path, post_path)
+        url_domain = hexo_config.get('url_domain')
+        return (path, post_path, url_domain)
