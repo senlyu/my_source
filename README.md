@@ -1,1 +1,85 @@
-# my_source
+# My Source - By Gemini Cli
+
+This project is a Python-based service that connects to Telegram, processes messages with Google Gemini, and exports the results to various platforms like Discord and Hexo blogs.
+
+## Features
+
+*   **Telegram Listener:** Listens to specified Telegram channels for new messages.
+*   **Gemini Integration:** Processes Telegram messages using the Google Gemini Pro model.
+*   **Content Export:** Exports processed content to:
+    *   Discord channels (via webhooks).
+    *   Hexo blogs.
+*   **Scheduled Jobs:** Runs daily jobs for tasks like generating reports.
+*   **Configurable:** All services and credentials can be configured through a `config.json` file.
+*   **Development & Production Modes:** Supports different configurations for development and production environments.
+
+## Installation
+
+1.  **Clone the repository:**
+    ```bash
+    git clone <repository-url>
+    cd my_source
+    ```
+
+2.  **Install Python 3.13 or higher.**
+
+3.  **Install Pipenv:**
+    ```bash
+    pip install pipenv
+    ```
+
+4.  **Install dependencies:**
+    ```bash
+    pipenv install
+    ```
+
+## Configuration
+
+1.  Create a `config.json` file in the root directory of the project.
+
+2.  Add the following configuration to the `config.json` file, replacing the placeholder values with your actual credentials:
+
+    ```json
+    {
+      "telegram": {
+        "app_id": "YOUR_TELEGRAM_APP_ID",
+        "app_hash": "YOUR_TELEGRAM_APP_HASH",
+        "client_name": "YOUR_TELEGRAM_CLIENT_NAME",
+        "channels": ["channel_username1", "channel_username2"]
+      },
+      "gemini": {
+        "api_key": "YOUR_GEMINI_API_KEY"
+      },
+      "discord": {
+        "channel_url": "YOUR_DISCORD_WEBHOOK_URL"
+      },
+      "hexo": {
+        "path": "/path/to/your/hexo/blog",
+        "post_path": "source/_posts",
+        "url_domain": "https://your-hexo-blog.com"
+      },
+      "storage": {
+        "telegram_path": "history"
+      }
+    }
+    ```
+
+## Usage
+
+### Production Mode
+
+To run the service in production mode, use the following command:
+
+```bash
+./start.sh
+```
+
+### Development Mode
+
+To run the service in development mode, use the following command:
+
+```bash
+./start_dev.sh
+```
+
+This will typically run the service with more verbose logging and may have other development-specific settings.
