@@ -24,7 +24,7 @@ def init_discord_exporter_from_config(config):
 
 def init_gemini_connect_from_config(config):
     gemini_api_key = config.get_gemini_config()
-    return GeminiConnect(gemini_api_key)
+    return GeminiConnect(gemini_api_key, 'sp')
 
 def init_main_job_from_config(config):
     storage_path = config.get_storage_path_telegram()
