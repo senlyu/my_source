@@ -4,7 +4,7 @@ from export.hexo_blog_helper.python_run_shell import PythonRunShell
 from util.logging_to_file import Logging
 
 class HexoExporter:
-    UPLOAD_COMMAND = ["npm", "run", "upload"]
+    UPLOAD_COMMAND = ["npm", "run", "save"]
     FILE_NAME = "Daily_Financial_News_Report"
     TEMPLATE_POST = "export/hexo_blog_helper/template_post.md"
 
