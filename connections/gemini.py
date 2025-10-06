@@ -13,10 +13,13 @@ class GeminiConnect(ModelAPI):
         return self.promot.make_standard(txt)
 
     def get_result_for_files(self, doc_paths, model_name):
-        doc_data = ""
+        doc_data_parts = []
         for doc_path in doc_paths:
             with open(doc_path, "rb") as doc_file:
-                doc_data += base64.standard_b64encode(doc_file.read()).decode("utf-8")
+                encoded_content = base64.standard_b64encode(doc_file.read()).decode("utf-8")
+                doc_data_parts.append(encoded_content)
+
+        doc_data = "".join(doc_data_parts)
 
         genai.configure(api_key=self.api_key)
         model = genai.GenerativeModel(model_name) # "gemini-2.5-flash"
