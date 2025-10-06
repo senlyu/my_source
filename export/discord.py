@@ -1,5 +1,4 @@
 import requests
-from connections.model_api import ModelAPI
 
 class DiscordExporter:
     def __init__(self, channel_url):
@@ -12,8 +11,8 @@ class DiscordExporter:
             chunks.append(string[i:i + chunk_size])
         return chunks
 
-    def export_by_model(self, messages, type: ModelAPI):
-        result = type.get_chunk_by_split(messages)
+    def export_by_model(self, messages, analyse):
+        result = analyse.make_standard(messages)
         return [ requests.post(self.channel_url, data={'content': m}) for m in result]
 
     def export(self, messages):

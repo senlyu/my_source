@@ -7,7 +7,7 @@ class EmptyFormat(PromotFormat):
         return self.PROMOT_FORMAT_SP
     
     def make_standard(self, txt):
-        return txt
+        return [txt]
 
     def format_validate(self, txt):
         return (None, True)
