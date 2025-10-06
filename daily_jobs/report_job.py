@@ -33,7 +33,7 @@ class ReportJob(DailyJob):
 
         self.exporter.export(f"{req["model"]}")
         msg = response.text
-        res = self.exporter.export_by_model(f"{msg}", self.analyzer)
+        res = self.exporter.export_by_model(f"{msg}", self.analyzer) # process model results only
         for r in res: 
             Logging.log(r)
             

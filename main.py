@@ -5,9 +5,11 @@ from connections.telegram import TelegramListener
 from connections.gemini import GeminiConnect
 from daily_jobs.report_job import ReportJob
 from export.discord import DiscordExporter
+from export.hexo import HexoExporter
 from util.logging_to_file import Logging
 from util.sys_env import get_mode, get_is_dev_mode
 from util.config import Config
+from promots.gemini_promot import GeminiPromotNoFormat, GeminiPromotWithSP
 
 
 def init_telegram_listener_from_config(config):
@@ -22,14 +24,27 @@ def init_discord_exporter_from_config(config):
     discord_channel_url = config.get_discord_config()
     return DiscordExporter(discord_channel_url)
 
-def init_gemini_connect_from_config(config):
-    gemini_api_key = config.get_gemini_config()
-    return GeminiConnect(gemini_api_key)
+def init_hexo_exporter_from_config(config):
+    (path, post_path) = config.get_hexo_config()
+    return HexoExporter(path, post_path)
 
-def init_main_job_from_config(config):
+def init_gemini_connect_from_config_format(config):
+    gemini_api_key = config.get_gemini_config()
+    return GeminiConnect(gemini_api_key, GeminiPromotWithSP())
+
+def init_gemini_connect_from_config_no_format(config):
+    gemini_api_key = config.get_gemini_config()
+    return GeminiConnect(gemini_api_key, GeminiPromotNoFormat())
+
+def init_report_job_to_discord(config):
     storage_path = config.get_storage_path_telegram()
     report_time = (datetime.now()+timedelta(seconds=10)).strftime("%H:%M:%S") if get_is_dev_mode() else "18:00:00"
-    return ReportJob("main report", report_time, init_discord_exporter_from_config(config), init_gemini_connect_from_config(config), storage_path)
+    return ReportJob("discord report", report_time, init_discord_exporter_from_config(config), init_gemini_connect_from_config_format(config), storage_path)
+
+def init_report_job_to_hexo(config):
+    storage_path = config.get_storage_path_telegram()
+    report_time = (datetime.now()+timedelta(seconds=10)).strftime("%H:%M:%S") if get_is_dev_mode() else "18:30:00"
+    return ReportJob("hexo report", report_time, init_hexo_exporter_from_config(config), init_gemini_connect_from_config_no_format(config), storage_path)
 
 async def main():
     config = Config('config.json')
@@ -37,10 +52,14 @@ async def main():
     telegram_tasks = [telegram_listener.start() for telegram_listener in telegram_listeners]
 
     # upload task
-    main_job = init_main_job_from_config(config)
+    discord_job = init_report_job_to_discord(config)
+    hexo_job = init_report_job_to_hexo(config)
 
     # all_tasks = telegram_tasks
-    all_tasks = telegram_tasks + [main_job.start()]
+    all_tasks = telegram_tasks + [
+        discord_job.start(), 
+        hexo_job.start()
+    ]
 
     await asyncio.gather(*all_tasks)
 
