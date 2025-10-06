@@ -43,7 +43,7 @@ def init_report_job_to_discord(config):
 
 def init_report_job_to_hexo(config):
     storage_path = config.get_storage_path_telegram()
-    report_time = (datetime.now()+timedelta(seconds=10)).strftime("%H:%M:%S") if get_is_dev_mode() else "18:30:00"
+    report_time = (datetime.now()+timedelta(seconds=10)).strftime("%H:%M:%S") if get_is_dev_mode() else "18:00:00"
     return ReportJob("hexo report", report_time, init_hexo_exporter_from_config(config), init_gemini_connect_from_config_no_format(config), storage_path)
 
 async def main():
@@ -65,5 +65,7 @@ async def main():
 
 if __name__ == "__main__":
     Logging.clean()
-    Logging.log(get_mode())
+    Logging.log("-"*100)
+    Logging.log("my source start with mode: " + "prod" if get_mode() is None else get_mode())
+    Logging.log("-"*100)
     asyncio.run(main())
