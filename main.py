@@ -25,8 +25,8 @@ def init_discord_exporter_from_config(config):
     return DiscordExporter(discord_channel_url)
 
 def init_hexo_exporter_from_config(config):
-    (path, post_path, url_domain) = config.get_hexo_config()
-    return HexoExporter(path, post_path, url_domain, init_discord_exporter_from_config(config))
+    (path, post_path, url_domain, upload_command, command_path) = config.get_hexo_config()
+    return HexoExporter(path, post_path, url_domain, init_discord_exporter_from_config(config), upload_command, command_path)
 
 def init_gemini_connect_from_config_format(config):
     gemini_api_key = config.get_gemini_config()
