@@ -1,24 +1,17 @@
 import asyncio
-
-from export.hexo import HexoExporter
-from export.discord import DiscordExporter
-from connections.gemini import GeminiConnect
-from promots.gemini_promot import GeminiPromotNoFormat
 from util.logging_to_file import Logging
 from util.sys_env import get_mode
 from util.config import Config
+from util.factory import ServiceFactory
 
 async def main():
     config = Config('config.json')
+    factory = ServiceFactory(config)
 
-    discord_channel_url = config.get_discord_config()
-
-    (path, post_path, url_domain) = config.get_hexo_config()
-    exporter = HexoExporter(path, post_path, url_domain, DiscordExporter(discord_channel_url))
-
-    gemini_api_key = config.get_gemini_config()
+    exporter = factory.create_hexo_exporter()
+    gemini_connect = factory.create_gemini_connect_no_format()
     
-    exporter.export_by_model('test', GeminiConnect(gemini_api_key, GeminiPromotNoFormat()))
+    exporter.export_by_model('test', gemini_connect)
 
 
 if __name__ == "__main__":
