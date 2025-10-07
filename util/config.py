@@ -49,7 +49,7 @@ class Config:
 
     def get_gemini_config(self):
         gemini_config = self.config.get('gemini')
-        return gemini_config.get('api_key')
+        return (gemini_config.get('api_key'), gemini_config.get("history"))
 
     def get_hexo_config(self):
         hexo_config = self.config.get('hexo')

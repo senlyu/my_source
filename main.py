@@ -29,12 +29,12 @@ def init_hexo_exporter_from_config(config):
     return HexoExporter(path, post_path, url_domain, init_discord_exporter_from_config(config), upload_command, command_path)
 
 def init_gemini_connect_from_config_format(config):
-    gemini_api_key = config.get_gemini_config()
-    return GeminiConnect(gemini_api_key, GeminiPromotWithSP())
+    (gemini_api_key, gemini_history) = config.get_gemini_config()
+    return GeminiConnect(gemini_api_key, GeminiPromotWithSP(), gemini_history)
 
 def init_gemini_connect_from_config_no_format(config):
-    gemini_api_key = config.get_gemini_config()
-    return GeminiConnect(gemini_api_key, GeminiPromotNoFormat())
+    (gemini_api_key, gemini_history) = config.get_gemini_config()
+    return GeminiConnect(gemini_api_key, GeminiPromotNoFormat(), gemini_history)
 
 def init_report_job_to_discord(config):
     storage_path = config.get_storage_path_telegram()
@@ -49,7 +49,9 @@ def init_report_job_to_hexo(config):
 async def main():
     config = Config('config.json')
     telegram_listeners = init_telegram_listener_from_config(config)
-    telegram_tasks = [telegram_listener.start() for telegram_listener in telegram_listeners]
+    telegram_tasks = [
+        telegram_listener.start() for telegram_listener in telegram_listeners
+    ]
 
     # upload task
     # discord_job = init_report_job_to_discord(config)

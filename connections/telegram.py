@@ -1,7 +1,7 @@
 import os
 import datetime
 from telethon import TelegramClient
-from storage.save_to_file import SaveToFile
+from storage.save_to_file import SaveToFileWithID
 from connections.listener import Listener
 from util.logging_to_file import Logging
 import asyncio
@@ -70,8 +70,8 @@ class TelegramListener(Listener):
             if os.path.exists(yesterday_path):
                 path = yesterday_path
 
-        file_storage = SaveToFile(path)
-        previous_messages = file_storage.load()
+        file_storage = SaveToFileWithID(path)
+        previous_messages = file_storage.load_with_id()
 
         all = []
         if len(previous_messages) > 0:
@@ -105,8 +105,8 @@ class TelegramListener(Listener):
     def save(self, id, data):
         date = datetime.datetime.now().strftime('%Y-%m-%d')
         path = os.path.join(self.storage_path, date+".txt")
-        save_to_file = SaveToFile(path)
-        save_to_file.save(id, data)
+        save_to_file = SaveToFileWithID(path)
+        save_to_file.save_with_id(id, data)
 
     def clean(self):
         date = datetime.datetime.now().strftime('%Y-%m-%d')

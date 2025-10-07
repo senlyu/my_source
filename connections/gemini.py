@@ -1,13 +1,19 @@
 import google.generativeai as genai
+import os
 import base64
 import time
 from util.logging_to_file import Logging
 from connections.model_api import ModelAPI
+from storage.save_to_file import SaveToFile, hash_data_40_chars
 
 class GeminiConnect(ModelAPI):
-    def __init__(self, api_key, promot):
+    EXPENSIVE_MODEL = "gemini-2.5-pro"
+    BACKUP_MODEL = "gemini-2.5-flash"
+
+    def __init__(self, api_key, promot, history=None):
         self.api_key = api_key
         self.promot = promot
+        self.history = history
 
     def make_standard(self, txt):
         return self.promot.make_standard(txt)
@@ -28,46 +34,75 @@ class GeminiConnect(ModelAPI):
 
         return response
 
-    def get_result_from_models(self, doc_paths):
-        # try model "gemini-2.5-pro"
-        try:
-            response = self.get_result_for_files(doc_paths, "gemini-2.5-pro")
-            msg = response.text
-            (e, status) = self.promot.format_validate(msg)
-            if not status:
-                raise e
-        except Exception as e:
-            Logging.log(e)
-            msg = None
+    def load_from_history(self, doc_paths, model_name):
+        if not hasattr(self, "history"):
+            return None
+        
+        params = hash_data_40_chars({"doc_paths": doc_paths, "model_name": model_name})
+        path = os.path.join(self.history, params+".txt")
+        if not os.path.exists(path):
+            return None
 
-        if (msg!="" and msg is not None):
-            Logging.log("2.5 pro return results")
-            req = { "model": "gemini-2.5-pro",  "doc_paths": doc_paths, "promot": self.promot.get_promot() }
-            return (response, req)
+        storage = SaveToFile(path)
+        return storage.load()
 
-        # try model "gemini-2.5-flash" with format enforcement
-        for i in range(5):
-            response = self.get_result_for_files(doc_paths, "gemini-2.5-flash")
-            msg = response.text
-            (e, status) = self.promot.format_validate(msg)
-            if not status:
+    def save_to_history(self, data, doc_paths, model_name):
+        if not hasattr(self, "history"):
+            return None
+        
+        params = hash_data_40_chars({"doc_paths": doc_paths, "model_name": model_name})
+        path = os.path.join(self.history, params+".txt")
+        storage = SaveToFile(path)
+        return storage.save(data)
+
+    def get_result_from_model_by_type(self, doc_paths, model_type, validation_needed=False):
+        req = { "model": model_type,  "doc_paths": doc_paths, "promot": self.promot.get_promot() }
+        txt = None
+        usage_metadata = None
+
+        # try cache
+        data = self.load_from_history(doc_paths, model_type)
+        if data is not None:
+            Logging.log(f"{model_type} find result from cache")
+            txt = data
+        else:
+            # try model
+            try:
+                response = self.get_result_for_files(doc_paths, model_type)
+                txt = response.text
+                usage_metadata = response.usage_metadata
+                (e, status) = self.promot.format_validate(txt)
+                if validation_needed and not status:
+                    raise e
+            except Exception as e:
                 Logging.log(e)
-                continue
-            if (msg!="" and msg is not None):
-                Logging.log("2.5 flash return results")
-                req = { "model": "gemini-2.5-flash",  "doc_paths": doc_paths, "promot": self.promot.get_promot() }
-                return (response, req)
-            Logging.log(f"2.5 flash return nothing, retry in {2**i*30} seconds...")
+                txt = None
+            
+            if (txt!="" and txt is not None):
+                Logging.log(f"{model_type} return results")
+                self.save_to_history(txt, doc_paths, model_type)
+        
+        return ({"txt": txt, "usage_metadata": usage_metadata}, req)
+
+
+    def get_result_from_models(self, doc_paths):
+        # try expensive model
+        (result, req) = self.get_result_from_model_by_type(doc_paths, self.EXPENSIVE_MODEL, True)
+        if result["txt"] is not None and result["txt"] != "":
+            return (result, req)
+        
+        # try bakcup model with format enforcement
+        for i in range(5):
+            (result, req) = self.get_result_from_model_by_type(doc_paths, self.BACKUP_MODEL, True)
+            if result["txt"] is not None and result["txt"] != "":
+                return (result, req)
+            
             time.sleep(2**i * 30) #retry
 
-        # try model "gemini-2.5-flash" without format enforcement
+        # try backup model without format enforcement
         for i in range(5):
-            response = self.get_result_for_files(doc_paths, "gemini-2.5-flash")
-            msg = response.text
-            (e, status) = self.promot.format_validate(msg)
-            if (msg!="" and msg is not None):
-                Logging.log("2.5 flash return results")
-                req = { "model": "gemini-2.5-flash",  "doc_paths": doc_paths, "promot": self.promot.get_promot() }
-                return (response, req)
-            Logging.log(f"2.5 flash return nothing, retry in {2**i*30} seconds...")
+            (result, req) = self.get_result_from_model_by_type(doc_paths, self.BACKUP_MODEL, False)
+            if result["txt"] is not None and result["txt"] != "":
+                return (result, req)
+            
             time.sleep(2**i * 30) #retry
