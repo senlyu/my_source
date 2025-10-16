@@ -1,4 +1,5 @@
 from promots.promot_base import PromotFormat
+from util.logging_to_file import Logging
 
 class SPFormat(PromotFormat):
     PROMOT_FORMAT_SP = "格式上全文使用<SP>作为分隔符,每大约1000字符的内容用<SP>来分开,分开的内容绝对不可以超过1500字符,不要因此省略输出的内容"
@@ -7,7 +8,10 @@ class SPFormat(PromotFormat):
         return self.PROMOT_FORMAT_SP
     
     def make_standard(self, txt):
-        return txt.split("<SP>")
+        res = txt.split("<SP>")
+        for r in res: 
+            Logging.log(r)
+        return res
 
     def format_validate(self, txt):
         try:

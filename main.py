@@ -9,7 +9,6 @@ from export.hexo import HexoExporter
 from util.logging_to_file import Logging
 from util.sys_env import get_mode, get_is_dev_mode
 from util.config import Config
-from promots.gemini_promot import GeminiPromotNoFormat, GeminiPromotWithSP
 
 
 def init_telegram_listener_from_config(config):
@@ -26,25 +25,32 @@ def init_discord_exporter_from_config(config):
 
 def init_hexo_exporter_from_config(config):
     (path, post_path, url_domain, upload_command, command_path) = config.get_hexo_config()
-    return HexoExporter(path, post_path, url_domain, init_discord_exporter_from_config(config), upload_command, command_path)
+    return HexoExporter(path, post_path, url_domain, upload_command, command_path)
 
 def init_gemini_connect_from_config_format(config):
     (gemini_api_key, gemini_history) = config.get_gemini_config()
-    return GeminiConnect(gemini_api_key, GeminiPromotWithSP(), gemini_history)
+    return GeminiConnect(gemini_api_key, gemini_history)
 
 def init_gemini_connect_from_config_no_format(config):
     (gemini_api_key, gemini_history) = config.get_gemini_config()
-    return GeminiConnect(gemini_api_key, GeminiPromotNoFormat(), gemini_history)
+    return GeminiConnect(gemini_api_key, gemini_history)
 
-def init_report_job_to_discord(config):
-    storage_path = config.get_storage_path_telegram()
-    report_time = (datetime.now()+timedelta(seconds=10)).strftime("%H:%M:%S") if get_is_dev_mode() else "18:00:00"
-    return ReportJob("discord report", report_time, init_discord_exporter_from_config(config), init_gemini_connect_from_config_format(config), storage_path)
+# def init_report_job_to_discord(config):
+#     storage_path = config.get_storage_path_telegram()
+#     report_time = (datetime.now()+timedelta(seconds=10)).strftime("%H:%M:%S") if get_is_dev_mode() else "18:00:00"
+#     return ReportJob("discord report", report_time, init_discord_exporter_from_config(config), init_gemini_connect_from_config_format(config), storage_path)
 
 def init_report_job_to_hexo(config):
     storage_path = config.get_storage_path_telegram()
     report_time = (datetime.now()+timedelta(seconds=10)).strftime("%H:%M:%S") if get_is_dev_mode() else "18:00:00"
-    return ReportJob("hexo report", report_time, init_hexo_exporter_from_config(config), init_gemini_connect_from_config_no_format(config), storage_path)
+    return ReportJob(
+        "hexo report", 
+        report_time, 
+        init_hexo_exporter_from_config(config), 
+        init_gemini_connect_from_config_no_format(config), 
+        storage_path, 
+        init_discord_exporter_from_config(config)
+    )
 
 async def main():
     config = Config('config.json')

@@ -14,11 +14,11 @@ async def main():
     discord_channel_url = config.get_discord_config()
 
     (path, post_path, url_domain, upload_command, command_path) = config.get_hexo_config()
-    exporter = HexoExporter(path, post_path, url_domain, DiscordExporter(discord_channel_url), upload_command, command_path)
+    exporter = HexoExporter(path, post_path, url_domain, upload_command, command_path)
 
     (gemini_api_key, gemini_history) = config.get_gemini_config()
     
-    exporter.export_by_model('test', GeminiConnect(gemini_api_key, GeminiPromotNoFormat(), gemini_history))
+    # exporter.export('test', GeminiConnect(gemini_api_key, GeminiPromotNoFormat(), gemini_history))
 
 
 if __name__ == "__main__":
