@@ -1,10 +1,10 @@
 from abc import ABC, abstractmethod
 from typing import final
 
-class PromotFormat(ABC):
+class PromptFormat(ABC):
 
     @abstractmethod
-    def get_format_promot(self):
+    def get_format_prompt(self):
         pass
 
     @abstractmethod
@@ -16,11 +16,11 @@ class PromotFormat(ABC):
         pass
 
 
-class PromotBase(PromotFormat, ABC):
+class PromptBase(PromptFormat, ABC):
     @abstractmethod
-    def promot(self):
+    def prompt(self):
         pass
 
     @final
-    def get_promot(self):
-        return self.promot() + self.get_format_promot()
+    def get_prompt(self):
+        return self.prompt() + self.get_format_prompt()

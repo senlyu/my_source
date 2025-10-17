@@ -13,7 +13,7 @@ class GeminiConnect:
         self.api_key = api_key
         self.history = history
 
-    def get_result_from_model_with_files(self, promot, doc_paths, model_name):
+    def get_result_from_model_with_files(self, prompt, doc_paths, model_name):
         doc_data_parts = []
         for doc_path in doc_paths:
             with open(doc_path, "rb") as doc_file:
@@ -25,15 +25,15 @@ class GeminiConnect:
         genai.configure(api_key=self.api_key)
         model = genai.GenerativeModel(model_name) # "gemini-2.5-flash"
 
-        response = model.generate_content([{'mime_type': 'text/plain', 'data': doc_data}, promot.get_promot()])
+        response = model.generate_content([{'mime_type': 'text/plain', 'data': doc_data}, prompt.get_prompt()])
 
         return response
 
-    def load_from_history(self, promot, doc_paths, model_name):
+    def load_from_history(self, prompt, doc_paths, model_name):
         if not hasattr(self, "history"):
             return None
         
-        params = hash_data_40_chars({"doc_paths": doc_paths, "model_name": model_name, "promot": promot.get_promot()})
+        params = hash_data_40_chars({"doc_paths": doc_paths, "model_name": model_name, "prompt": prompt.get_prompt()})
         path = os.path.join(self.history, params+".txt")
         if not os.path.exists(path):
             return None
@@ -41,32 +41,32 @@ class GeminiConnect:
         storage = SaveToFile(path)
         return storage.load()
 
-    def save_to_history(self, data, promot, doc_paths, model_name):
+    def save_to_history(self, data, prompt, doc_paths, model_name):
         if not hasattr(self, "history"):
             return None
         
-        params = hash_data_40_chars({"doc_paths": doc_paths, "model_name": model_name, "promot": promot.get_promot()})
+        params = hash_data_40_chars({"doc_paths": doc_paths, "model_name": model_name, "prompt": prompt.get_prompt()})
         path = os.path.join(self.history, params+".txt")
         storage = SaveToFile(path)
         return storage.save(data)
 
-    def get_result_from_model_by_type(self, promot, doc_paths, model_type, validation_needed=False):
-        req = { "model": model_type,  "doc_paths": doc_paths, "promot": promot.get_promot() }
+    def get_result_from_model_by_type(self, prompt, doc_paths, model_type, validation_needed=False):
+        req = { "model": model_type,  "doc_paths": doc_paths, "prompt": prompt.get_prompt() }
         txt = None
         usage_metadata = None
 
         # try cache
-        data = self.load_from_history(promot, doc_paths, model_type)
+        data = self.load_from_history(prompt, doc_paths, model_type)
         if data is not None:
             Logging.log(f"{model_type} find result from cache")
             txt = data
         else:
             # try model
             try:
-                response = self.get_result_from_model_with_files(promot, doc_paths, model_type)
+                response = self.get_result_from_model_with_files(prompt, doc_paths, model_type)
                 txt = response.text
                 usage_metadata = response.usage_metadata
-                (e, status) = promot.format_validate(txt)
+                (e, status) = prompt.format_validate(txt)
                 if validation_needed and not status:
                     raise e
             except Exception as e:
@@ -75,20 +75,20 @@ class GeminiConnect:
             
             if (txt!="" and txt is not None):
                 Logging.log(f"{model_type} return results")
-                self.save_to_history(txt, promot, doc_paths, model_type)
+                self.save_to_history(txt, prompt, doc_paths, model_type)
         
         return ({"txt": txt, "usage_metadata": usage_metadata}, req)
 
 
-    def get_result_from_models(self, promot, doc_paths):
+    def get_result_from_models(self, prompt, doc_paths):
         # try expensive model
-        (result, req) = self.get_result_from_model_by_type(promot, doc_paths, self.EXPENSIVE_MODEL, True)
+        (result, req) = self.get_result_from_model_by_type(prompt, doc_paths, self.EXPENSIVE_MODEL, True)
         if result["txt"] is not None and result["txt"] != "":
             return (result, req)
         
         # try bakcup model with format enforcement
         for i in range(5):
-            (result, req) = self.get_result_from_model_by_type(promot, doc_paths, self.BACKUP_MODEL, True)
+            (result, req) = self.get_result_from_model_by_type(prompt, doc_paths, self.BACKUP_MODEL, True)
             if result["txt"] is not None and result["txt"] != "":
                 return (result, req)
             
@@ -96,7 +96,7 @@ class GeminiConnect:
 
         # try backup model without format enforcement
         for i in range(5):
-            (result, req) = self.get_result_from_model_by_type(promot, doc_paths, self.BACKUP_MODEL, False)
+            (result, req) = self.get_result_from_model_by_type(prompt, doc_paths, self.BACKUP_MODEL, False)
             if result["txt"] is not None and result["txt"] != "":
                 return (result, req)
             

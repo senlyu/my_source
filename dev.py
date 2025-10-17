@@ -3,7 +3,7 @@ import asyncio
 from export.hexo import HexoExporter
 from export.discord import DiscordExporter
 from connections.gemini import GeminiConnect
-from promots.gemini_promot import GeminiPromotNoFormat
+from prompts.gemini_prompt import GeminiPromptNoFormat
 from util.logging_to_file import Logging
 from util.sys_env import get_mode
 from util.config import Config
@@ -18,7 +18,7 @@ async def main():
 
     (gemini_api_key, gemini_history) = config.get_gemini_config()
     
-    # exporter.export('test', GeminiConnect(gemini_api_key, GeminiPromotNoFormat(), gemini_history))
+    # exporter.export('test', GeminiConnect(gemini_api_key, GeminiPromptNoFormat(), gemini_history))
 
 
 if __name__ == "__main__":

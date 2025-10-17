@@ -1,11 +1,11 @@
-from promots.promot_base import PromotFormat
+from prompts.prompt_base import PromptFormat
 from util.logging_to_file import Logging
 
-class EmptyFormat(PromotFormat):
-    PROMOT_FORMAT_SP = ""
+class EmptyFormat(PromptFormat):
+    PROMPT_FORMAT_SP = ""
 
-    def get_format_promot(self):
-        return self.PROMOT_FORMAT_SP
+    def get_format_prompt(self):
+        return self.PROMPT_FORMAT_SP
     
     def make_standard(self, txt):
         Logging.log([txt])

@@ -4,16 +4,16 @@ import pytz
 from datetime import datetime, timedelta
 import os
 from util.logging_to_file import Logging
-from promots.gemini_promot import GeminiPromotNoFormat
+from prompts.gemini_prompt import GeminiPromptNoFormat
 
-def get_standard_result_from_model(analyzer, promot, data_paths):
-    (result, req) = analyzer.get_result_from_models(promot, data_paths)
+def get_standard_result_from_model(analyzer, prompt, data_paths):
+    (result, req) = analyzer.get_result_from_models(prompt, data_paths)
     Logging.log(req)
     Logging.log(result)
     Logging.log(f"{req["model"]}")
     Logging.log(f"{result["usage_metadata"]}")
 
-    return promot.make_standard(result["txt"])
+    return prompt.make_standard(result["txt"])
 
 def get_all_paths(storage_path):
     today = datetime.now().strftime('%Y-%m-%d')
@@ -37,8 +37,8 @@ class ReportJob(DailyJob):
         Logging.log(f"{now} my source daily job start")
 
         all_path = get_all_paths(self.storage_path)
-        promot_result = get_standard_result_from_model(self.analyzer, GeminiPromotNoFormat(), all_path)
-        self.exporter.export(promot_result) # process model results only
+        prompt_result = get_standard_result_from_model(self.analyzer, GeminiPromptNoFormat(), all_path)
+        self.exporter.export(prompt_result) # process model results only
         self.link_share_exporter.export("daily updated doc here: " + self.exporter.get_new_post_link())
             
         now = datetime.now(pst).strftime("%m-%d-%H:%M:%S")
