@@ -71,9 +71,35 @@ async def main():
 
     await asyncio.gather(*all_tasks)
 
+async def dev_on_listener():
+    config = Config('config.json')
+    telegram_listeners = init_telegram_listener_from_config(config)
+    telegram_tasks = [
+        telegram_listener.start() for telegram_listener in telegram_listeners
+    ]
+
+    all_tasks = telegram_tasks
+
+    await asyncio.gather(*all_tasks)
+
+async def dev_on_reporter():
+    config = Config('config.json')
+    hexo_job = init_report_job_to_hexo(config)
+
+    all_tasks = [hexo_job.start()]
+
+    await asyncio.gather(*all_tasks)
+
 if __name__ == "__main__":
     Logging.clean()
     Logging.log("-"*100)
-    Logging.log("my source start with mode: " + "prod" if get_mode() is None else get_mode())
+    mode = get_mode()
+    Logging.log("my source start with mode: " + mode)
     Logging.log("-"*100)
-    asyncio.run(main())
+
+    if mode == "dev_listener":
+        asyncio.run(dev_on_listener())
+    elif mode == "dev_reporter":
+        asyncio.run(dev_on_reporter())
+    elif mode == "prod":
+        asyncio.run(main())

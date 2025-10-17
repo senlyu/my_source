@@ -8,10 +8,10 @@ def get_is_dev_mode() -> bool:
     """
     return true if it is dev mode
     """
-    return (sys.argv[1] if len(sys.argv) > 1 else None) == "dev"
+    return (sys.argv[1] if len(sys.argv) > 1 else None) != "prod"
 
 def get_mode() -> str:
     """
     return mode, prod is default, default is empty
     """
-    return sys.argv[1] if len(sys.argv) > 1 else None
+    return sys.argv[1] if len(sys.argv) > 1 else "prod"
