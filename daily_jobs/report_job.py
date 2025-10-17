@@ -38,7 +38,7 @@ class ReportJob(DailyJob):
 
         all_path = get_all_paths(self.storage_path)
         promot_result = get_standard_result_from_model(self.analyzer, GeminiPromotNoFormat(), all_path)
-        self.exporter.export(f"{promot_result}") # process model results only
+        self.exporter.export(promot_result) # process model results only
         self.link_share_exporter.export("daily updated doc here: " + self.exporter.get_new_post_link())
             
         now = datetime.now(pst).strftime("%m-%d-%H:%M:%S")
