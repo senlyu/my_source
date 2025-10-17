@@ -27,8 +27,9 @@ class TelegramListener(Listener):
 
     async def init_work(self):
         self.clean()
+        await self.connect()
 
-    async def main(self):
+    async def connect(self):
         while not self.client.is_connected():
             try:
                 res = await self.client.start()
@@ -37,6 +38,8 @@ class TelegramListener(Listener):
                 Logging.log(e)
                 await asyncio.sleep(60)
 
+    async def main(self):
+        await self.connect()
         all, previous_messages = await self.query()
         filtered = self.filter(all, previous_messages)
         for message in filtered:

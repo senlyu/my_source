@@ -56,7 +56,7 @@ async def main():
     config = Config('config.json')
     telegram_listeners = init_telegram_listener_from_config(config)
     telegram_tasks = [
-        telegram_listener.start() for telegram_listener in telegram_listeners
+        await telegram_listener.start() for telegram_listener in telegram_listeners
     ]
 
     # upload task
@@ -66,7 +66,7 @@ async def main():
     # all_tasks = telegram_tasks
     all_tasks = telegram_tasks + [
         # discord_job.start(), 
-        hexo_job.start()
+        await hexo_job.start()
     ]
 
     await asyncio.gather(*all_tasks)
@@ -75,7 +75,7 @@ async def dev_on_listener():
     config = Config('config.json')
     telegram_listeners = init_telegram_listener_from_config(config)
     telegram_tasks = [
-        telegram_listener.start() for telegram_listener in telegram_listeners
+        await telegram_listener.start() for telegram_listener in telegram_listeners
     ]
 
     all_tasks = telegram_tasks
@@ -86,7 +86,7 @@ async def dev_on_reporter():
     config = Config('config.json')
     hexo_job = init_report_job_to_hexo(config)
 
-    all_tasks = [hexo_job.start()]
+    all_tasks = [await hexo_job.start()]
 
     await asyncio.gather(*all_tasks)
 
