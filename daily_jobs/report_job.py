@@ -4,7 +4,7 @@ import pytz
 from datetime import datetime, timedelta
 import os
 from util.logging_to_file import Logging
-from prompts.gemini_prompt import GeminiPromptNoFormat
+from prompts.gemini_prompt import FinancePromptFirstPart, FinancePromptSecondPart, FinancePromptThirdPart, FinancePromptFourthPart, FinancePromptFifthPart
 
 def get_standard_result_from_model(analyzer, prompt, data_paths):
     (result, req) = analyzer.get_result_from_models(prompt, data_paths)
@@ -13,7 +13,7 @@ def get_standard_result_from_model(analyzer, prompt, data_paths):
     Logging.log(f"{req["model"]}")
     Logging.log(f"{result["usage_metadata"]}")
 
-    return prompt.make_standard(result["txt"])
+    return "\n".join(prompt.make_standard(result["txt"]))
 
 def get_all_paths(storage_path):
     today = datetime.now().strftime('%Y-%m-%d')
@@ -37,8 +37,14 @@ class ReportJob(DailyJob):
         Logging.log(f"{now} my source daily job start")
 
         all_path = get_all_paths(self.storage_path)
-        prompt_result = get_standard_result_from_model(self.analyzer, GeminiPromptNoFormat(), all_path)
-        self.exporter.export(prompt_result) # process model results only
+        prompts_results = []
+        prompts_results.append(get_standard_result_from_model(self.analyzer, FinancePromptFirstPart(), all_path))
+        prompts_results.append(get_standard_result_from_model(self.analyzer, FinancePromptSecondPart(), all_path))
+        prompts_results.append(get_standard_result_from_model(self.analyzer, FinancePromptThirdPart(), all_path))
+        prompts_results.append(get_standard_result_from_model(self.analyzer, FinancePromptFourthPart(), all_path))
+        prompts_results.append(get_standard_result_from_model(self.analyzer, FinancePromptFifthPart(), all_path))
+
+        self.exporter.export("\n\n\n".join(prompts_results)) # process model results only
         self.link_share_exporter.export("daily updated doc here: " + self.exporter.get_new_post_link())
             
         now = datetime.now(pst).strftime("%m-%d-%H:%M:%S")

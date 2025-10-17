@@ -2,6 +2,7 @@ import google.generativeai as genai
 import os
 import base64
 import time
+import datetime
 from util.logging_to_file import Logging
 from storage.save_to_file import SaveToFile, hash_data_40_chars
 
@@ -12,6 +13,7 @@ class GeminiConnect:
     def __init__(self, api_key, history=None):
         self.api_key = api_key
         self.history = history
+        self.clean_history()
 
     def get_result_from_model_with_files(self, prompt, doc_paths, model_name):
         doc_data_parts = []
@@ -32,23 +34,42 @@ class GeminiConnect:
     def load_from_history(self, prompt, doc_paths, model_name):
         if not hasattr(self, "history"):
             return None
-        
-        params = hash_data_40_chars({"doc_paths": doc_paths, "model_name": model_name, "prompt": prompt.get_prompt()})
-        path = os.path.join(self.history, params+".txt")
-        if not os.path.exists(path):
-            return None
 
-        storage = SaveToFile(path)
-        return storage.load()
+        file_name = hash_data_40_chars({"doc_paths": doc_paths, "model_name": model_name, "prompt": prompt.get_prompt()})
+        # find files
+        for _, _, files in os.walk(self.history):
+            for file in files:
+                if file[10:-4] == file_name: # "2000-01-01xyz.txt"[10:-4] = "xyz" 
+                    path = os.path.join(self.history, file)
+                    storage = SaveToFile(path)
+                    return storage.load()
+        
+        return None
 
     def save_to_history(self, data, prompt, doc_paths, model_name):
         if not hasattr(self, "history"):
             return None
         
+        date = datetime.datetime.now().strftime('%Y-%m-%d')
         params = hash_data_40_chars({"doc_paths": doc_paths, "model_name": model_name, "prompt": prompt.get_prompt()})
-        path = os.path.join(self.history, params+".txt")
+        path = os.path.join(self.history, date+params+".txt")
         storage = SaveToFile(path)
         return storage.save(data)
+
+    def clean_history(self):
+        if not hasattr(self, "history"):
+            return None
+        
+        for _, _, files in os.walk(self.history):
+            for file in files:
+                file_date = file[:10]
+                try:
+                    date_obj_file = datetime.datetime.strptime(file_date, '%Y-%m-%d')
+                    if date_obj_file + datetime.timedelta(days=30) < datetime.datetime.now():
+                        os.remove(os.path.join(self.history, file))
+                except Exception as e:
+                    Logging.log(e)
+                    continue
 
     def get_result_from_model_by_type(self, prompt, doc_paths, model_type, validation_needed=False):
         req = { "model": model_type,  "doc_paths": doc_paths, "prompt": prompt.get_prompt() }
