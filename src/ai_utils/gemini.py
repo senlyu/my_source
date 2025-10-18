@@ -1,6 +1,6 @@
-import google.generativeai as genai
+from google import genai
+from google.genai.errors import APIError
 import os
-import base64
 import time
 import datetime
 from ..util.logging_to_file import Logging
@@ -15,19 +15,22 @@ class GeminiConnect:
         self.history = history
         self.clean_history()
 
-    def get_result_from_model_with_files(self, prompt, doc_paths, model_name):
+    async def get_result_from_model_with_files(self, prompt, doc_paths, model_name):
         doc_data_parts = []
         for doc_path in doc_paths:
-            with open(doc_path, "rb") as doc_file:
-                encoded_content = base64.standard_b64encode(doc_file.read()).decode("utf-8")
-                doc_data_parts.append(encoded_content)
-
+            with open(doc_path, "r", encoding="utf-8") as doc_file:
+                txt_data = doc_file.read()
+                doc_data_parts.append(txt_data)
         doc_data = "".join(doc_data_parts)
 
-        genai.configure(api_key=self.api_key)
-        model = genai.GenerativeModel(model_name) # "gemini-2.5-flash"
-
-        response = model.generate_content([{'mime_type': 'text/plain', 'data': doc_data}, prompt.get_prompt()])
+        client = genai.Client(api_key=self.api_key)
+        response = await client.aio.models.generate_content(
+            model=model_name,
+            contents=[
+                {"parts": [ { "text": doc_data } ]},
+                {"parts": [ { "text": prompt.get_prompt() } ]},
+            ]
+        )
 
         return response
 
@@ -71,7 +74,7 @@ class GeminiConnect:
                     Logging.log(e)
                     continue
 
-    def get_result_from_model_by_type(self, prompt, doc_paths, model_type, validation_needed=False):
+    async def get_result_from_model_by_type(self, prompt, doc_paths, model_type, validation_needed=False):
         req = { "model": model_type,  "doc_paths": doc_paths, "prompt": prompt.get_prompt() }
         txt = None
         usage_metadata = None
@@ -84,13 +87,18 @@ class GeminiConnect:
         else:
             # try model
             try:
-                response = self.get_result_from_model_with_files(prompt, doc_paths, model_type)
+                Logging.log(f"Start to get model result: {req}")
+                response = await self.get_result_from_model_with_files(prompt, doc_paths, model_type)
                 txt = response.text
                 usage_metadata = response.usage_metadata
                 if validation_needed:
                     (e, status) = prompt.validate_formated_result(txt)
                     if not status:
                         raise e
+            except APIError as e:
+                if "429 RESOURCE_EXHAUSTED" in str(e):
+                    Logging.log("quota limit")
+                raise
             except Exception as e:
                 Logging.log(e)
                 txt = None
@@ -102,15 +110,15 @@ class GeminiConnect:
         return ({"txt": txt, "usage_metadata": usage_metadata}, req)
 
 
-    def get_result_from_models(self, prompt, doc_paths):
+    async def get_result_from_models(self, prompt, doc_paths):
         # try expensive model
-        (result, req) = self.get_result_from_model_by_type(prompt, doc_paths, self.EXPENSIVE_MODEL, True)
+        (result, req) = await self.get_result_from_model_by_type(prompt, doc_paths, self.EXPENSIVE_MODEL, True)
         if result["txt"] is not None and result["txt"] != "":
             return (result, req)
         
         # try bakcup model with format enforcement
         for i in range(5):
-            (result, req) = self.get_result_from_model_by_type(prompt, doc_paths, self.BACKUP_MODEL, True)
+            (result, req) = await self.get_result_from_model_by_type(prompt, doc_paths, self.BACKUP_MODEL, True)
             if result["txt"] is not None and result["txt"] != "":
                 return (result, req)
             
@@ -118,7 +126,7 @@ class GeminiConnect:
 
         # try backup model without format enforcement
         for i in range(5):
-            (result, req) = self.get_result_from_model_by_type(prompt, doc_paths, self.BACKUP_MODEL, False)
+            (result, req) = await self.get_result_from_model_by_type(prompt, doc_paths, self.BACKUP_MODEL, False)
             if result["txt"] is not None and result["txt"] != "":
                 return (result, req)
             

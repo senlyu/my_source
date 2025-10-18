@@ -8,6 +8,7 @@ telethon = "*"
 requests = "*"
 pytz = "*"
 google-generativeai = "*"
+google-genai = "*"
 
 [dev-packages]
 

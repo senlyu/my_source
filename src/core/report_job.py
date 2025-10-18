@@ -1,4 +1,5 @@
 
+import asyncio
 from ..scheduler.target_time_job import TargetTimeJob
 import pytz
 from datetime import datetime, timedelta
@@ -6,8 +7,8 @@ import os
 from ..util.logging_to_file import Logging
 from ..ai_utils.prompts.gemini_prompt import FinancePromptFirstPart, FinancePromptSecondPart, FinancePromptThirdPart, FinancePromptFourthPart, FinancePromptFifthPart
 
-def get_standard_result_from_model(analyzer, prompt, data_paths):
-    (result, req) = analyzer.get_result_from_models(prompt, data_paths)
+async def get_standard_result_from_model(analyzer, prompt, data_paths):
+    (result, req) = await analyzer.get_result_from_models(prompt, data_paths)
     Logging.log(req)
     Logging.log(result)
     Logging.log(f"{req["model"]}")
@@ -41,12 +42,14 @@ class ReportJob(TargetTimeJob):
 
         all_path = get_all_paths(self.storage_path)
         Logging.log(f"all path found: {all_path}")
-        prompts_results = []
-        prompts_results.append(get_standard_result_from_model(self.analyzer, FinancePromptFirstPart(), all_path))
-        prompts_results.append(get_standard_result_from_model(self.analyzer, FinancePromptSecondPart(), all_path))
-        prompts_results.append(get_standard_result_from_model(self.analyzer, FinancePromptThirdPart(), all_path))
-        prompts_results.append(get_standard_result_from_model(self.analyzer, FinancePromptFourthPart(), all_path))
-        prompts_results.append(get_standard_result_from_model(self.analyzer, FinancePromptFifthPart(), all_path))
+        model_requests = []
+        model_requests.append(get_standard_result_from_model(self.analyzer, FinancePromptFirstPart(), all_path))
+        model_requests.append(get_standard_result_from_model(self.analyzer, FinancePromptSecondPart(), all_path))
+        model_requests.append(get_standard_result_from_model(self.analyzer, FinancePromptThirdPart(), all_path))
+        model_requests.append(get_standard_result_from_model(self.analyzer, FinancePromptFourthPart(), all_path))
+        model_requests.append(get_standard_result_from_model(self.analyzer, FinancePromptFifthPart(), all_path))
+
+        prompts_results = await asyncio.gather(*model_requests)
 
         self.exporter.export("\n\n\n".join(prompts_results)) # process model results only
         self.link_share_exporter.export("daily updated doc here: " + self.exporter.get_new_post_link())
