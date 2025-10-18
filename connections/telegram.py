@@ -2,49 +2,32 @@ import os
 import datetime
 from telethon import TelegramClient
 from storage.save_to_file import SaveToFileWithID
-from connections.listener import Listener
+from connections.recursive_scheduler import RecursiveScheduler
 from util.logging_to_file import Logging
-import asyncio
-import traceback
 
-
-class TelegramListener(Listener):
+class TelegramListener(RecursiveScheduler):
     def __init__(self, app_id, app_hash, client_name, storage_path, channel_name, query_time=60*5):
-        self.query_time = query_time
+        super().__init__('telegram_listner', query_time)
         self.client = TelegramClient(client_name, app_id, app_hash)
         self.storage_path = storage_path
         self.channel_name = channel_name
-    
-    def error_handle(self, e):
-        formatted_tb = traceback.format_tb(e.__traceback__)
-        for line in formatted_tb:
-            Logging.log(line.strip())
-        Logging.log(f"\nException Type: {type(e).__name__}")
-        Logging.log(f"Exception Message: {e}")
-
-    def get_query_time(self):
-        return self.query_time
 
     async def init_work(self):
         self.clean()
         await self.connect()
 
-    async def connect(self):
-        while not self.client.is_connected():
-            try:
-                res = await self.client.start()
-                Logging.log('connected')
-            except Exception as e:
-                Logging.log(e)
-                await asyncio.sleep(60)
-
     async def main(self):
         await self.connect()
-        all, previous_messages = await self.query()
-        filtered = self.filter(all, previous_messages)
+        all_msg, previous_messages = await self.query()
+        filtered = self.filter(all_msg, previous_messages)
         for message in filtered:
             self.save(message[0], message[1])
         Logging.log(f"finished one job, saved {len(filtered)} messages")
+        
+    async def connect(self):
+        if not self.client.is_connected():
+            await self.client.start()
+            Logging.log('connected')
 
     async def query_by_date(self, date):
         yesterday = date - datetime.timedelta(days=1)
@@ -53,16 +36,16 @@ class TelegramListener(Listener):
         return await self.query_min_id(min_id)
 
     async def query_min_id(self, min_id):
-        all = []
+        all_msgs = []
         async for message in self.client.iter_messages(entity = self.channel_name, min_id=int(min_id), limit=1000):
-            all.append((message.id, message.text))
-        return all
+            all_msgs.append((message.id, message.text))
+        return all_msgs
 
     async def query_some(self):
-        all = []
+        all_msgs = []
         async for message in self.client.iter_messages(entity = self.channel_name, limit=1000):
-            all.append((message.id, message.text))
-        return all
+            all_msgs.append((message.id, message.text))
+        return all_msgs
 
     async def query(self):
         date = datetime.datetime.now().strftime('%Y-%m-%d')
@@ -76,21 +59,21 @@ class TelegramListener(Listener):
         file_storage = SaveToFileWithID(path)
         previous_messages = file_storage.load_with_id()
 
-        all = []
+        all_msgs = []
         if len(previous_messages) > 0:
             sorted_messages = sorted(previous_messages, key=lambda x: x[0], reverse=True)
             max_id = sorted_messages[0][0]
             Logging.log('query by max_id')
-            all = await self.query_min_id(max_id)
+            all_msgs = await self.query_min_id(max_id)
         else:
             Logging.log('query some')
-            all = await self.query_some()
+            all_msgs = await self.query_some()
 
         Logging.log("finished one query")
-        return all, previous_messages
+        return all_msgs, previous_messages
 
-    def filter(self, all, previous_messages):
-        filtered_all_by_channel = self.filter_by_channel_type(self.channel_name, all)
+    def filter(self, all_msgs, previous_messages):
+        filtered_all_by_channel = self.filter_by_channel_type(self.channel_name, all_msgs)
 
         all_set = set()
         all_self_dedup = []
@@ -105,16 +88,15 @@ class TelegramListener(Listener):
         all_filtered_from_previous = list(filter(lambda x: x[0] not in previous_messages_id, all_self_dedup))
         return sorted(all_filtered_from_previous, key=lambda x: x[0])
 
-    def save(self, id, data):
-        date = datetime.datetime.now().strftime('%Y-%m-%d')
-        path = os.path.join(self.storage_path, date+".txt")
+    def save(self, msg_id, data):
+        now_date = datetime.datetime.now().strftime('%Y-%m-%d')
+        path = os.path.join(self.storage_path, now_date+".txt")
         save_to_file = SaveToFileWithID(path)
-        save_to_file.save_with_id(id, data)
+        save_to_file.save_with_id(msg_id, data)
 
     def clean(self):
-        date = datetime.datetime.now().strftime('%Y-%m-%d')
         all_file_names = []
-        for root, dirs, files in os.walk(self.storage_path):
+        for root, _, files in os.walk(self.storage_path):
             for file in files:
                 if file.lower().endswith('.txt'):  # Case-insensitive check
                     full_path = os.path.join(root, file)
@@ -150,11 +132,11 @@ class TelegramListener(Listener):
                 message = tuple(message_list)
 
                 try:
-                    date = datetime.datetime.strptime(text_content[:5], '%m-%d')
-                    date = date.replace(year=datetime.datetime.now().year)
-                    date = date.date()
+                    msg_date = datetime.datetime.strptime(text_content[:5], '%m-%d')
+                    msg_date = msg_date.replace(year=datetime.datetime.now().year)
+                    msg_date = msg_date.date()
                     today = datetime.datetime.today().date()
-                    if date >= today:
+                    if msg_date >= today:
                         filtered.append(message)
 
                 except Exception as e:
@@ -163,6 +145,6 @@ class TelegramListener(Listener):
 
             return filtered
         else:
-            raise Exception('not implemented')
+            raise NotImplementedError()
 
                 

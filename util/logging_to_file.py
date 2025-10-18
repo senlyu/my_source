@@ -4,6 +4,7 @@ Import secondly, be aware adding any dependency
 
 import os
 from datetime import datetime, timedelta
+import traceback
 from util.sys_env import get_is_dev_mode
 
 class Logging:
@@ -18,9 +19,8 @@ class Logging:
             return
 
         storage_path = os.path.join("./log")
-        date = datetime.now().strftime('%Y-%m-%d')
         all_file_names = []
-        for root, dirs, files in os.walk(storage_path):
+        for root, _, files in os.walk(storage_path):
             for file in files:
                 if file.lower().endswith('.txt'):  # Case-insensitive check
                     full_path = os.path.join(root, file)
@@ -44,22 +44,30 @@ class Logging:
 
     @staticmethod
     def log(*args, **kwargs):
-        date = datetime.now().strftime("%Y-%m-%d")
-        time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        now_date = datetime.now().strftime("%Y-%m-%d")
+        now_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         is_dev_mode = get_is_dev_mode()
 
-        file_name = os.path.join("./log", date + ".txt") if not is_dev_mode else os.path.join("./log.txt")
+        file_name = os.path.join("./log", now_date + ".txt") if not is_dev_mode else os.path.join("./log.txt")
         if not os.path.exists(file_name):
             with open(file_name, 'w+', encoding="utf-8") as f:
-                s = time + ": " + (" ").join(str(arg) for arg in args)
+                s = now_time + ": " + (" ").join(str(arg) for arg in args)
                 s = s + (" ").join(str(f"{k}: {v}") for k, v in kwargs.items())
                 f.write(s)
                 f.write("\n")
                 f.close()
         else:
             with open(file_name, 'a', encoding="utf-8") as f:
-                s = time + ": " + (" ").join(str(arg) for arg in args)
+                s = now_time + ": " + (" ").join(str(arg) for arg in args)
                 s = s + (" ").join(str(f"{k}: {v}") for k, v in kwargs.items())
                 f.write(s)
                 f.write("\n")
                 f.close()
+
+    @staticmethod
+    def error(e):
+        formatted_tb = traceback.format_tb(e.__traceback__)
+        for line in formatted_tb:
+            Logging.log(line.strip())
+        Logging.log(f"\nException Type: {type(e).__name__}")
+        Logging.log(f"Exception Message: {e}")

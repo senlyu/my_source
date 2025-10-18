@@ -1,5 +1,5 @@
 
-from daily_jobs.daily_job import DailyJob
+from daily_jobs.target_time_job import TargetTimeJob
 import pytz
 from datetime import datetime, timedelta
 import os
@@ -23,7 +23,7 @@ def get_all_paths(storage_path):
 
     return [path for path in [today_path, yesterday_path] if os.path.exists(path)]
 
-class ReportJob(DailyJob):
+class ReportJob(TargetTimeJob):
     def __init__(self, job_name, target_time, main_exporter, analyzer, storage_path, link_share_exporter):
         super().__init__(job_name, target_time)
         self.exporter = main_exporter
@@ -31,7 +31,10 @@ class ReportJob(DailyJob):
         self.storage_path = storage_path
         self.link_share_exporter = link_share_exporter
 
-    async def job(self):
+    async def init_work(self):
+        pass
+
+    async def main(self):
         pst = pytz.timezone('US/Pacific')
         now = datetime.now(pst).strftime("%m-%d-%H:%M:%S")
         Logging.log(f"{now} my source daily job start")

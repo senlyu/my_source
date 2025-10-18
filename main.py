@@ -17,7 +17,7 @@ def init_telegram_listener_from_config(config):
 
     pathlib.Path(storage_path).mkdir(parents=True, exist_ok=True) 
 
-    return [TelegramListener(telegram_app_id, telegram_app_hash, telegram_client_name, storage_path, channel, 60) for channel in telegram_channels]
+    return [TelegramListener(telegram_app_id, telegram_app_hash, telegram_client_name, storage_path, channel, 5*60) for channel in telegram_channels]
 
 def init_discord_exporter_from_config(config):
     discord_channel_url = config.get_discord_config()
@@ -101,5 +101,7 @@ if __name__ == "__main__":
         asyncio.run(dev_on_listener())
     elif mode == "dev_reporter":
         asyncio.run(dev_on_reporter())
+    elif mode == "dev":
+        asyncio.run(main())
     elif mode == "prod":
         asyncio.run(main())
