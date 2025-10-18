@@ -5,7 +5,7 @@ Import secondly, be aware adding any dependency
 import os
 from datetime import datetime, timedelta
 import traceback
-from util.sys_env import get_is_dev_mode
+from .sys_env import get_is_dev_mode
 
 class Logging:
 

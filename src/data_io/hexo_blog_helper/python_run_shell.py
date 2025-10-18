@@ -1,7 +1,7 @@
 from typing import final
 import subprocess
 import os
-from util.logging_to_file import Logging
+from ...util.logging_to_file import Logging
 
 @final
 class PythonRunShell:

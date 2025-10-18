@@ -1,14 +1,14 @@
 import asyncio
 import pathlib
 from datetime import datetime, timedelta
-from connections.telegram import TelegramListener
-from connections.gemini import GeminiConnect
-from daily_jobs.report_job import ReportJob
-from export.discord import DiscordExporter
-from export.hexo import HexoExporter
-from util.logging_to_file import Logging
-from util.sys_env import get_mode, get_is_dev_mode
-from util.config import Config
+from .data_io.telegram import TelegramListener
+from .ai_utils.gemini import GeminiConnect
+from .core.report_job import ReportJob
+from .data_io.discord import DiscordExporter
+from .data_io.hexo import HexoExporter
+from .util.logging_to_file import Logging
+from .util.sys_env import get_mode, get_is_dev_mode
+from .util.config import Config
 
 
 def init_telegram_listener_from_config(config):
@@ -103,5 +103,5 @@ if __name__ == "__main__":
         asyncio.run(dev_on_reporter())
     elif mode == "dev":
         asyncio.run(main())
-    elif mode == "prod":
+    else:
         asyncio.run(main())

@@ -1,5 +1,5 @@
 import asyncio
-from util.logging_to_file import Logging
+from ..util.logging_to_file import Logging
 
 class RecursiveScheduler:
     

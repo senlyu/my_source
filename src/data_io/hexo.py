@@ -1,10 +1,10 @@
 import os
 from datetime import date
-from export.hexo_blog_helper.python_run_shell import PythonRunShell
+from .hexo_blog_helper.python_run_shell import PythonRunShell
 
 class HexoExporter:
     FILE_NAME = "Daily_Financial_News_Report"
-    TEMPLATE_POST = "export/hexo_blog_helper/template_post.md"
+    TEMPLATE_POST = "src/data_io/hexo_blog_helper/template_post.md"
 
     def __init__(self, directory_path, post_path, web_domain_url, upload_command, command_path):
         self.directory_path = directory_path

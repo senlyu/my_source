@@ -1,1 +1,0 @@
-pipenv run python3 main.py dev_reporter

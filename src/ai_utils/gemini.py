@@ -3,8 +3,8 @@ import os
 import base64
 import time
 import datetime
-from util.logging_to_file import Logging
-from storage.save_to_file import SaveToFile, hash_data_40_chars
+from ..util.logging_to_file import Logging
+from ..data_io.save_to_file import SaveToFile, hash_data_40_chars
 
 class GeminiConnect:
     EXPENSIVE_MODEL = "gemini-2.5-pro"

@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 import pytz
-from connections.recursive_scheduler import RecursiveScheduler
+from .recursive_scheduler import RecursiveScheduler
 
 class TargetTimeJob(RecursiveScheduler):
     def __init__(self, job_name, target_time):

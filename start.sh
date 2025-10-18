@@ -1,1 +1,1 @@
-pipenv run python3 main.py prod
+pipenv run python3 -m src.main

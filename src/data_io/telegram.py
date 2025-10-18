@@ -1,9 +1,9 @@
 import os
 import datetime
 from telethon import TelegramClient
-from storage.save_to_file import SaveToFileWithID
-from connections.recursive_scheduler import RecursiveScheduler
-from util.logging_to_file import Logging
+from .save_to_file import SaveToFileWithID
+from ..scheduler.recursive_scheduler import RecursiveScheduler
+from ..util.logging_to_file import Logging
 
 class TelegramListener(RecursiveScheduler):
     def __init__(self, app_id, app_hash, client_name, storage_path, channel_name, query_time=60*5):

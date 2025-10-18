@@ -1,10 +1,10 @@
 
-from daily_jobs.target_time_job import TargetTimeJob
+from ..scheduler.target_time_job import TargetTimeJob
 import pytz
 from datetime import datetime, timedelta
 import os
-from util.logging_to_file import Logging
-from prompts.gemini_prompt import FinancePromptFirstPart, FinancePromptSecondPart, FinancePromptThirdPart, FinancePromptFourthPart, FinancePromptFifthPart
+from ..util.logging_to_file import Logging
+from ..ai_utils.prompts.gemini_prompt import FinancePromptFirstPart, FinancePromptSecondPart, FinancePromptThirdPart, FinancePromptFourthPart, FinancePromptFifthPart
 
 def get_standard_result_from_model(analyzer, prompt, data_paths):
     (result, req) = analyzer.get_result_from_models(prompt, data_paths)
