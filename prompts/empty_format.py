@@ -1,15 +1,18 @@
-from prompts.prompt_base import PromptFormat
+from prompts.prompt_base import PromptFormatBase
 from util.logging_to_file import Logging
 
-class EmptyFormat(PromptFormat):
+class EmptyFormat(PromptFormatBase):
     PROMPT_FORMAT_SP = ""
 
+    @staticmethod
     def get_format_prompt(self):
-        return self.PROMPT_FORMAT_SP
+        return EmptyFormat.PROMPT_FORMAT_SP
     
-    def make_standard(self, txt):
-        Logging.log([txt])
-        return [txt]
+    @staticmethod
+    def make_standard(txt):
+        Logging.log(txt)
+        return txt
 
-    def format_validate(self, txt):
+    @staticmethod
+    def format_validate(txt):
         return (None, True)

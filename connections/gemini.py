@@ -87,9 +87,10 @@ class GeminiConnect:
                 response = self.get_result_from_model_with_files(prompt, doc_paths, model_type)
                 txt = response.text
                 usage_metadata = response.usage_metadata
-                (e, status) = prompt.format_validate(txt)
-                if validation_needed and not status:
-                    raise e
+                if validation_needed:
+                    (e, status) = prompt.validate_formated_result(txt)
+                    if not status:
+                        raise e
             except Exception as e:
                 Logging.log(e)
                 txt = None

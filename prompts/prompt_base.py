@@ -1,26 +1,46 @@
 from abc import ABC, abstractmethod
-from typing import final
+from typing import List
 
-class PromptFormat(ABC):
+class PromptFormatBase(ABC):
+    @staticmethod
+    def get_format_prompt():
+        raise NotImplementedError()
 
-    @abstractmethod
-    def get_format_prompt(self):
-        pass
+    @staticmethod
+    def make_standard(txt):
+        raise NotImplementedError()
 
-    @abstractmethod
-    def make_standard(self, txt):
-        pass
+    @staticmethod
+    def format_validate(txt) -> tuple[Exception, bool]:
+        raise NotImplementedError()
 
-    @abstractmethod
-    def format_validate(self, txt):
-        pass
+class PromptBase(ABC):
+    def __init__(self, prompt_formats: List[PromptFormatBase] = None):
+        if prompt_formats is None:
+            prompt_formats = []
+        self.prompt_formats = prompt_formats
 
-
-class PromptBase(PromptFormat, ABC):
     @abstractmethod
     def prompt(self):
-        pass
+        raise NotImplementedError()
 
-    @final
     def get_prompt(self):
-        return self.prompt() + self.get_format_prompt()
+        format_prompt = ".".join([p_format.get_format_prompt() for p_format in self.prompt_formats])
+        return self.prompt() + format_prompt
+    
+    def process_result(self, txt, do_validation):
+        res = txt
+        for p_format in self.prompt_formats[::-1]:
+            if do_validation:
+                (e, is_valid_format) = p_format.format_validate(res)
+                if not is_valid_format:
+                    return (e, is_valid_format, None)
+            res = p_format.make_standard(res)
+        return (None, True, res)
+    
+    def get_formated_result(self, txt):
+        return self.process_result(txt, False)[2]
+    
+    def validate_formated_result(self, txt):
+        (error, validation_result, _) = self.process_result(txt, True)
+        return (error, validation_result)

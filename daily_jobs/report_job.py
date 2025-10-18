@@ -13,7 +13,7 @@ def get_standard_result_from_model(analyzer, prompt, data_paths):
     Logging.log(f"{req["model"]}")
     Logging.log(f"{result["usage_metadata"]}")
 
-    return "\n".join(prompt.make_standard(result["txt"]))
+    return prompt.get_formated_result(result["txt"])
 
 def get_all_paths(storage_path):
     today = datetime.now().strftime('%Y-%m-%d')
@@ -37,6 +37,7 @@ class ReportJob(DailyJob):
         Logging.log(f"{now} my source daily job start")
 
         all_path = get_all_paths(self.storage_path)
+        Logging.log(f"all path found: {all_path}")
         prompts_results = []
         prompts_results.append(get_standard_result_from_model(self.analyzer, FinancePromptFirstPart(), all_path))
         prompts_results.append(get_standard_result_from_model(self.analyzer, FinancePromptSecondPart(), all_path))
