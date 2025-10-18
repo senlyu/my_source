@@ -1,5 +1,5 @@
 import json
-from util.sys_env import get_is_dev_mode
+from .sys_env import get_is_dev_mode
 
 # pylint: disable=W0105
 """

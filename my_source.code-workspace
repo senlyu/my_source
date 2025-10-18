@@ -1,0 +1,15 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"pylint.args": [
+            "--disable=C,R",
+			"--disable=W0718"
+        ],
+		"explorer.decorations.colors": true,
+		"git.decorations.enabled": true,
+    }
+}

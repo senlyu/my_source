@@ -1,14 +1,14 @@
 import asyncio
 import pathlib
 from datetime import datetime, timedelta
-from connections.telegram import TelegramListener
-from connections.gemini import GeminiConnect
-from daily_jobs.report_job import ReportJob
-from export.discord import DiscordExporter
-from export.hexo import HexoExporter
-from util.logging_to_file import Logging
-from util.sys_env import get_mode, get_is_dev_mode
-from util.config import Config
+from .data_io.telegram import TelegramListener
+from .ai_utils.gemini import GeminiConnect
+from .core.report_job import ReportJob
+from .data_io.discord import DiscordExporter
+from .data_io.hexo import HexoExporter
+from .util.logging_to_file import Logging
+from .util.sys_env import get_mode, get_is_dev_mode
+from .util.config import Config
 
 
 def init_telegram_listener_from_config(config):
@@ -17,7 +17,7 @@ def init_telegram_listener_from_config(config):
 
     pathlib.Path(storage_path).mkdir(parents=True, exist_ok=True) 
 
-    return [TelegramListener(telegram_app_id, telegram_app_hash, telegram_client_name, storage_path, channel, 60) for channel in telegram_channels]
+    return [TelegramListener(telegram_app_id, telegram_app_hash, telegram_client_name, storage_path, channel, 5*60) for channel in telegram_channels]
 
 def init_discord_exporter_from_config(config):
     discord_channel_url = config.get_discord_config()
@@ -101,5 +101,7 @@ if __name__ == "__main__":
         asyncio.run(dev_on_listener())
     elif mode == "dev_reporter":
         asyncio.run(dev_on_reporter())
-    elif mode == "prod":
+    elif mode == "dev":
+        asyncio.run(main())
+    else:
         asyncio.run(main())

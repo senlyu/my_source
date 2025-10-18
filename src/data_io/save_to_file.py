@@ -1,7 +1,7 @@
 import json
 import os
 import hashlib
-from util.logging_to_file import Logging
+from ..util.logging_to_file import Logging
 
 class SaveToFile:
     def __init__(self, file_name):
