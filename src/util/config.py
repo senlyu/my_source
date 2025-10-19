@@ -29,7 +29,7 @@ config file example
 class Config:
     def __init__(self, file):
         self.file = file
-        with open('config.json', 'r') as f:
+        with open(file, 'r', encoding="utf-8") as f:
             self.config = json.load(f)
 
     def get_storage_path_telegram(self):
