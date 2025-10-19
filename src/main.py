@@ -1,6 +1,7 @@
 import asyncio
 import pathlib
 from datetime import datetime, timedelta
+from telethon import TelegramClient
 from src.ai_utils.key_manager import KeyManager
 from .data_io.telegram import TelegramListener
 from .ai_utils.gemini import GeminiConnect, GeminiConnectKeyManager
@@ -17,8 +18,9 @@ def init_telegram_listener_from_config(config):
     storage_path = config.get_storage_path_telegram()
 
     pathlib.Path(storage_path).mkdir(parents=True, exist_ok=True) 
+    common_telegram_client = TelegramClient(telegram_client_name, telegram_app_id, telegram_app_hash)
 
-    return [TelegramListener(telegram_app_id, telegram_app_hash, telegram_client_name, storage_path, channel, 5*60) for channel in telegram_channels]
+    return [TelegramListener(common_telegram_client, storage_path, channel, 5*60) for channel in telegram_channels]
 
 def init_discord_exporter_from_config(config):
     discord_channel_url = config.get_discord_config()
@@ -38,7 +40,7 @@ def init_gemini_connect_key_manager_from_config(config):
 
 def init_gemini_key_manager_from_config(config):
     gemini_keys = config.get_gemini_key_manager()
-    return KeyManager(gemini_keys, 2)
+    return KeyManager(gemini_keys, 1) # use one because token size limit
 
 def init_report_job_to_hexo(config):
     storage_path = config.get_storage_path_telegram()

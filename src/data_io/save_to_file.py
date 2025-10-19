@@ -8,6 +8,7 @@ class SaveToFile:
         self.file_name = file_name
 
     def save(self, data):
+        os.makedirs(os.path.dirname(self.file_name), exist_ok=True)
         if not os.path.exists(self.file_name):
             with open(self.file_name, 'w+', encoding="utf-8") as f:
                 f.write(f'{data}')
@@ -18,6 +19,7 @@ class SaveToFile:
                 f.close()
 
     def load(self):
+        os.makedirs(os.path.dirname(self.file_name), exist_ok=True)
         if not os.path.exists(self.file_name):
             with open(self.file_name, 'w+', encoding="utf-8") as f:
                 f.write('')
@@ -32,6 +34,7 @@ class SaveToFile:
         return data
 
     def load_by_line(self):
+        os.makedirs(os.path.dirname(self.file_name), exist_ok=True)
         if not os.path.exists(self.file_name):
             with open(self.file_name, 'w+', encoding="utf-8") as f:
                 f.write('')

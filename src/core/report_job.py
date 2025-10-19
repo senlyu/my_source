@@ -16,13 +16,26 @@ async def get_standard_result_from_model(analyzer, prompt, data_paths):
 
     return prompt.header() + prompt.get_formated_result(result["txt"])
 
-def get_all_paths(storage_path):
-    today = datetime.now().strftime('%Y-%m-%d')
-    today_path = os.path.join(storage_path, today+".txt")
-    yesterday = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
-    yesterday_path = os.path.join(storage_path, yesterday+".txt")
+def find_direct_folders_os(root_dir):
+    full_paths_for_sub_folders = []
 
-    return [path for path in [today_path, yesterday_path] if os.path.exists(path)]
+    for name in os.listdir(root_dir):
+        full_path = os.path.join(root_dir, name)
+        if os.path.isdir(full_path):
+            full_paths_for_sub_folders.append(full_path)
+            
+    return full_paths_for_sub_folders
+
+def get_all_paths(storage_path):
+    full_paths_for_sub_folders = [os.path.join(storage_path, '@fnnew')] # token too large if contains all channels
+    res = []
+    for p in full_paths_for_sub_folders:
+        today = datetime.now().strftime('%Y-%m-%d')
+        today_path = os.path.join(p, today+".txt")
+        yesterday = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
+        yesterday_path = os.path.join(p, yesterday+".txt")
+        res.extend([path for path in [today_path, yesterday_path] if os.path.exists(path)])
+    return res
 
 class ReportJob(TargetTimeJob):
     def __init__(self, job_name, target_time, main_exporter, analyzer, storage_path, link_share_exporter):
