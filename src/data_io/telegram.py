@@ -1,15 +1,15 @@
 import os
 import datetime
-from telethon import TelegramClient
+import re
 from .save_to_file import SaveToFileWithID
 from ..scheduler.recursive_scheduler import RecursiveScheduler
 from ..util.logging_to_file import Logging
 
 class TelegramListener(RecursiveScheduler):
-    def __init__(self, app_id, app_hash, client_name, storage_path, channel_name, query_time=60*5):
+    def __init__(self, client, storage_path, channel_name, query_time=60*5):
         super().__init__('telegram_listner', query_time)
-        self.client = TelegramClient(client_name, app_id, app_hash)
-        self.storage_path = storage_path
+        self.client = client
+        self.storage_path = os.path.join(storage_path, channel_name)
         self.channel_name = channel_name
 
     async def init_work(self):
@@ -119,32 +119,73 @@ class TelegramListener(RecursiveScheduler):
             Logging.log(f"remove file: {full_path}")
 
     def filter_by_channel_type(self, channel, messages):
-        if channel == '@fnnew':
-            filtered = []
-            # start with date or #重要
-            for message in messages:
-                text_content = message[1].lstrip()
-
-                if text_content.startswith('#重要'):
-                    text_content = text_content[3:].lstrip()
-                message_list = list(message)
-                message_list[1] = text_content
-                message = tuple(message_list)
-
-                try:
-                    msg_date = datetime.datetime.strptime(text_content[:5], '%m-%d')
-                    msg_date = msg_date.replace(year=datetime.datetime.now().year)
-                    msg_date = msg_date.date()
-                    today = datetime.datetime.today().date()
-                    if msg_date >= today:
-                        filtered.append(message)
-
-                except Exception as e:
-                    Logging.log(e)
-                    filtered.append(message)
-
-            return filtered
+        if channel == "@fnnew":
+            return self.fnnew_channel_handle(messages)
+        elif channel == "@Financial_Express":
+            return self.Financial_Express_channel_handle(messages)
+        elif channel == "@wublock":
+            return self.wublock_channel_handle(messages)
         else:
             raise NotImplementedError()
 
+    def fnnew_channel_handle(self, messages):
+        filtered = []
+        # start with date or #重要
+        for message in messages:
+            text_content = message[1].lstrip()
+
+            if text_content.startswith('#重要'):
+                text_content = text_content[3:].lstrip()
+            message_list = list(message)
+            message_list[1] = text_content
+            message = tuple(message_list)
+
+            try:
+                msg_date = datetime.datetime.strptime(text_content[:5], '%m-%d')
+                msg_date = msg_date.replace(year=datetime.datetime.now().year)
+                msg_date = msg_date.date()
+                today = datetime.datetime.today().date()
+                if msg_date >= today:
+                    filtered.append(message)
+
+            except Exception as e:
+                Logging.log(e)
+                filtered.append(message)
+
+        return filtered
+    
+    def Financial_Express_channel_handle(self, messages):
+        filtered = []
+        
+        for message in messages:
+            text_content = message[1].lstrip()
+            text_content = re.sub(r"\n", "", text_content) # remove \n
+            text_content = re.sub(r"\*\*", "", text_content) # remove **
+            text_content = re.sub(r"\|", "", text_content) # remove |
+            text_content = re.sub(r"https?\:\/\/[^\s]+", "", text_content) # remove link
+
+            message_list = list(message)
+            message_list[1] = text_content
+            message = tuple(message_list)
+
+            filtered.append(message)
+
+        return filtered
                 
+    def wublock_channel_handle(self, messages):
+        filtered = []
+        
+        for message in messages:
+            text_content = message[1].lstrip()
+
+            text_content = re.sub(r"吴说", "", text_content) # remove 吴说
+            text_content = re.sub(r"\n", "", text_content) # remove \n
+            text_content = re.sub(r"\|", "", text_content) # remove |
+            text_content = re.sub(r"\[\s*[—一]*\s*(link)*\]\(([^)]+)\)", "", text_content) # remove link
+            message_list = list(message)
+            message_list[1] = text_content
+            message = tuple(message_list)
+
+            filtered.append(message)
+
+        return filtered

@@ -9,6 +9,7 @@ from ..data_io.save_to_file import SaveToFile, hash_data_40_chars
 class GeminiConnect:
     EXPENSIVE_MODEL = "gemini-2.5-pro"
     BACKUP_MODEL = "gemini-2.5-flash"
+    BACKUP_MODEL_2 = "gemini-2.0-flash"
 
     def __init__(self, api_key, history=None):
         self.api_key = api_key
@@ -127,7 +128,7 @@ class GeminiConnect:
 
         # try backup model without format enforcement
         for i in range(5):
-            (result, req) = await self.get_result_from_model_by_type(prompt, doc_paths, self.BACKUP_MODEL, False)
+            (result, req) = await self.get_result_from_model_by_type(prompt, doc_paths, self.BACKUP_MODEL_2, False)
             if result["txt"] is not None and result["txt"] != "":
                 return (result, req)
             
