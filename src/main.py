@@ -1,8 +1,9 @@
 import asyncio
 import pathlib
 from datetime import datetime, timedelta
+from src.ai_utils.key_manager import KeyManager
 from .data_io.telegram import TelegramListener
-from .ai_utils.gemini import GeminiConnect
+from .ai_utils.gemini import GeminiConnect, GeminiConnectKeyManager
 from .core.report_job import ReportJob
 from .data_io.discord import DiscordExporter
 from .data_io.hexo import HexoExporter
@@ -27,18 +28,17 @@ def init_hexo_exporter_from_config(config):
     (path, post_path, url_domain, upload_command, command_path) = config.get_hexo_config()
     return HexoExporter(path, post_path, url_domain, upload_command, command_path)
 
-def init_gemini_connect_from_config_format(config):
+def init_gemini_connect_from_config(config):
     (gemini_api_key, gemini_history) = config.get_gemini_config()
     return GeminiConnect(gemini_api_key, gemini_history)
 
-def init_gemini_connect_from_config_no_format(config):
-    (gemini_api_key, gemini_history) = config.get_gemini_config()
-    return GeminiConnect(gemini_api_key, gemini_history)
+def init_gemini_connect_key_manager_from_config(config):
+    (_, gemini_history) = config.get_gemini_config()
+    return GeminiConnectKeyManager(init_gemini_key_manager_from_config(config), gemini_history)
 
-# def init_report_job_to_discord(config):
-#     storage_path = config.get_storage_path_telegram()
-#     report_time = (datetime.now()+timedelta(seconds=10)).strftime("%H:%M:%S") if get_is_dev_mode() else "18:00:00"
-#     return ReportJob("discord report", report_time, init_discord_exporter_from_config(config), init_gemini_connect_from_config_format(config), storage_path)
+def init_gemini_key_manager_from_config(config):
+    gemini_keys = config.get_gemini_key_manager()
+    return KeyManager(gemini_keys, 2)
 
 def init_report_job_to_hexo(config):
     storage_path = config.get_storage_path_telegram()
@@ -47,7 +47,7 @@ def init_report_job_to_hexo(config):
         "hexo report", 
         report_time, 
         init_hexo_exporter_from_config(config), 
-        init_gemini_connect_from_config_no_format(config), 
+        init_gemini_connect_key_manager_from_config(config), 
         storage_path, 
         init_discord_exporter_from_config(config)
     )
