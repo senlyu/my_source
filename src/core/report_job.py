@@ -14,7 +14,7 @@ async def get_standard_result_from_model(analyzer, prompt, data_paths):
     Logging.log(f"{req["model"]}")
     Logging.log(f"{result["usage_metadata"]}")
 
-    return prompt.get_formated_result(result["txt"])
+    return prompt.header() + prompt.get_formated_result(result["txt"])
 
 def get_all_paths(storage_path):
     today = datetime.now().strftime('%Y-%m-%d')

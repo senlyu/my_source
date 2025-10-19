@@ -1,3 +1,4 @@
+from src.ai_utils.prompts.header_format import HeaderFormat
 from .prompt_base import PromptBase
 from .empty_format import EmptyFormat
 from .starter_format import StarterFormat
@@ -30,29 +31,59 @@ NEW_PROMPT_THIRD_PART = "我是一名美股分析师，请按照以下要求从�
 NEW_PROMPT_FOURTH_PART = "我是一名美股分析师，请按照以下要求从附带的信息中总结以下内容。用中文，详细提供短期美国股票今日股价的变动信息，保留详细数字和数据，重点关注美国数据，并且保留所有有关股票数据变化，忽略企业业务变化等描述，忽略id，股票代号用英文。"
 NEW_PROMPT_FIFTH_PART = "我是一名美股分析师，请按照以下要求从附带的信息中总结以下内容。用中文，详细提供今日虚拟货币的相关信息，保留详细数字和数据，忽略id，代号用英文。"
 
+HEADER_FIRST_PART = "## 宏观事件"
+HEADER_SECOND_PART = "## 重要人物言论"
+HEADER_THIRD_PART = "## 企业事件"
+HEADER_FOUTH_PART = "## 股票市场"
+HEADER_FIFTH_PART = "## 虚拟货币市场"
+
 class FinancePromptWithStarterFormat(PromptBase):
     def __init__(self, prompt_formats = None):
         if prompt_formats is None:
             prompt_formats = []
-        prompt_formats.append(StarterFormat)
+        prompt_formats.extend([StarterFormat, HeaderFormat])
         super().__init__(prompt_formats)
+    
+    @staticmethod
+    def header():
+        raise NotImplementedError()
 
 class FinancePromptFirstPart(FinancePromptWithStarterFormat):
     def prompt(self):
         return NEW_PROMPT_FIRST_PART
+    
+    @staticmethod
+    def header():
+        return HEADER_FIRST_PART
 
 class FinancePromptSecondPart(FinancePromptWithStarterFormat):
     def prompt(self):
         return NEW_PROMPT_SECOND_PART
+    
+    @staticmethod
+    def header():
+        return HEADER_SECOND_PART
 
 class FinancePromptThirdPart(FinancePromptWithStarterFormat):
     def prompt(self):
         return NEW_PROMPT_THIRD_PART
+    
+    @staticmethod
+    def header():
+        return HEADER_THIRD_PART
 
 class FinancePromptFourthPart(FinancePromptWithStarterFormat):
     def prompt(self):
         return NEW_PROMPT_FOURTH_PART
+    
+    @staticmethod
+    def header():
+        return HEADER_FOUTH_PART
 
 class FinancePromptFifthPart(FinancePromptWithStarterFormat):
     def prompt(self):
         return NEW_PROMPT_FIFTH_PART
+    
+    @staticmethod
+    def header():
+        return HEADER_FIFTH_PART
