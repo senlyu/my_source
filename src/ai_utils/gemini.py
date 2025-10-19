@@ -15,20 +15,20 @@ class GeminiConnect:
         self.history = history
         self.clean_history()
 
-    async def get_result_from_model_with_files(self, prompt, doc_paths, model_name):
+    async def get_result_from_model_with_files_async_text(self, prompt, doc_paths, model_name):
         doc_data_parts = []
         for doc_path in doc_paths:
             with open(doc_path, "r", encoding="utf-8") as doc_file:
                 txt_data = doc_file.read()
                 doc_data_parts.append(txt_data)
         doc_data = "".join(doc_data_parts)
-
+        Logging.log("[deprecated] use single api_key")
         client = genai.Client(api_key=self.api_key)
         response = await client.aio.models.generate_content(
             model=model_name,
             contents=[
-                {"parts": [ { "text": doc_data } ]},
-                {"parts": [ { "text": prompt.get_prompt() } ]},
+                doc_data,
+                prompt.get_prompt(),
             ]
         )
 
@@ -88,7 +88,7 @@ class GeminiConnect:
             # try model
             try:
                 Logging.log(f"Start to get model result: {req}")
-                response = await self.get_result_from_model_with_files(prompt, doc_paths, model_type)
+                response = await self.get_result_from_model_with_files_async_text(prompt, doc_paths, model_type)
                 txt = response.text
                 usage_metadata = response.usage_metadata
                 if validation_needed:
@@ -132,3 +132,36 @@ class GeminiConnect:
                 return (result, req)
             
             time.sleep(2**i * 30) #retry
+
+class GeminiConnectKeyManager(GeminiConnect):
+    def __init__(self, key_manager, history=None):
+        super().__init__("", history)
+        self.key_manager = key_manager
+        self.history = history
+        self.clean_history()
+
+    async def get_result_from_model_with_files_async_text(self, prompt, doc_paths, model_name):
+        doc_data_parts = []
+        for doc_path in doc_paths:
+            with open(doc_path, "r", encoding="utf-8") as doc_file:
+                txt_data = doc_file.read()
+                doc_data_parts.append(txt_data)
+        doc_data = "".join(doc_data_parts)
+
+        try:
+            Logging.log("Try to get api_key for continue...")
+            api_key = await self.key_manager.get_key_and_wait()
+            Logging.log("api_key get, start request")
+
+            client = genai.Client(api_key=api_key)
+            response = await client.aio.models.generate_content(
+                model=model_name,
+                contents=[
+                    doc_data,
+                    prompt.get_prompt(),
+                ]
+            )
+            return response
+        finally:
+            self.key_manager.release_key(api_key)
+            Logging.log("api_key released")
