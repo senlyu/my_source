@@ -98,7 +98,8 @@ class GeminiConnect:
             except APIError as e:
                 if "429 RESOURCE_EXHAUSTED" in str(e):
                     Logging.log("quota limit")
-                raise
+                Logging.log(e)
+                txt = None
             except Exception as e:
                 Logging.log(e)
                 txt = None
