@@ -3,11 +3,13 @@ import datetime
 import re
 from .save_to_file import SaveToFileWithID
 from ..scheduler.recursive_scheduler import RecursiveScheduler
-from ..util.logging_to_file import Logging
+from ..util.logging_to_file import session_logger
+
+Logging = session_logger
 
 class TelegramListener(RecursiveScheduler):
     def __init__(self, client, storage_path, channel_name, query_time=60*5):
-        super().__init__('telegram_listner', query_time)
+        super().__init__('telegram_listener'+channel_name, query_time)
         self.client = client
         self.storage_path = os.path.join(storage_path, channel_name)
         self.channel_name = channel_name

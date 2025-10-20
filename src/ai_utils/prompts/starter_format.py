@@ -1,5 +1,6 @@
 from .prompt_base import PromptFormatBase
-from ...util.logging_to_file import Logging
+from ...util.logging_to_file import session_logger
+Logging = session_logger
 
 class StarterFormat(PromptFormatBase):
     PROMPT_FORMAT_SP = "正文部分开始之前用另起一行的<start>做提示，不要用‘作为美股分析师，我为您总结了xxx’等任何语句作为开头。直接以一个标题开始"

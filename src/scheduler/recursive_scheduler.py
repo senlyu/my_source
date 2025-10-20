@@ -1,5 +1,5 @@
 import asyncio
-from ..util.logging_to_file import Logging
+from ..util.logging_to_file import Logging, create_session_id, reset_session_id
 
 class RecursiveScheduler:
     
@@ -22,10 +22,13 @@ class RecursiveScheduler:
         return self.sleep_interval
 
     async def single_run_and_schedule(self):
+        token = create_session_id()
         try:
             await self.main()
         except Exception as e:
             self.error_handle(e)
+        finally:
+            reset_session_id(token)
         
         self.sleep_interval = self.update_sleep_interval()
         Logging.log(f"{self.task_name} is scheduled after {self.sleep_interval} seconds.")

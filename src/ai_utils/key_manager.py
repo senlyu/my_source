@@ -2,7 +2,8 @@ import asyncio
 import time
 from typing import Dict, Any, List
 
-from src.util.logging_to_file import Logging
+from src.util.logging_to_file import session_logger
+Logging = session_logger
 
 class KeyManager:
     def __init__(self, api_keys: List[Dict[str, Any]], rpm: int):

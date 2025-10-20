@@ -4,17 +4,24 @@ from ..scheduler.target_time_job import TargetTimeJob
 import pytz
 from datetime import datetime, timedelta
 import os
-from ..util.logging_to_file import Logging
+from ..util.logging_to_file import session_logger, create_session_id, reset_session_id
 from ..ai_utils.prompts.gemini_prompt import FinancePromptFirstPart, FinancePromptSecondPart, FinancePromptThirdPart, FinancePromptFourthPart, FinancePromptFifthPart
 
-async def get_standard_result_from_model(analyzer, prompt, data_paths):
-    (result, req) = await analyzer.get_result_from_models(prompt, data_paths)
-    Logging.log(req)
-    Logging.log(result)
-    Logging.log(f"{req["model"]}")
-    Logging.log(f"{result["usage_metadata"]}")
+Logging = session_logger
 
-    return prompt.header() + prompt.get_formated_result(result["txt"])
+async def get_standard_result_from_model(analyzer, prompt, data_paths):
+    token = create_session_id()
+    try:
+        (result, req) = await analyzer.get_result_from_models(prompt, data_paths)
+        Logging.log(req)
+        Logging.log(result)
+        Logging.log(f"{req["model"]}")
+        Logging.log(f"{result["usage_metadata"]}")
+        result = prompt.header() + prompt.get_formated_result(result["txt"])
+    finally:
+        reset_session_id(token)
+
+    return result
 
 def find_direct_folders_os(root_dir):
     full_paths_for_sub_folders = []

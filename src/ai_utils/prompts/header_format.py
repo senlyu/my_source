@@ -1,6 +1,7 @@
 from .prompt_base import PromptFormatBase
-from ...util.logging_to_file import Logging
+from ...util.logging_to_file import session_logger
 import re
+Logging = session_logger
 
 def check_headings(txt):
     h1_found = False

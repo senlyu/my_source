@@ -3,8 +3,10 @@ from google.genai.errors import APIError
 import os
 import time
 import datetime
-from ..util.logging_to_file import Logging
+from ..util.logging_to_file import session_logger
 from ..data_io.save_to_file import SaveToFile, hash_data_40_chars
+
+Logging = session_logger
 
 class GeminiConnect:
     EXPENSIVE_MODEL = "gemini-2.5-pro"

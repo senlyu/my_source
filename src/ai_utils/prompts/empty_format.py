@@ -1,5 +1,6 @@
 from .prompt_base import PromptFormatBase
-from ...util.logging_to_file import Logging
+from ...util.logging_to_file import session_logger
+Logging = session_logger
 
 class EmptyFormat(PromptFormatBase):
     PROMPT_FORMAT_SP = ""
