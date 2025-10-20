@@ -30,7 +30,8 @@ class RecursiveScheduler:
         self.sleep_interval = self.update_sleep_interval()
         Logging.log(f"{self.task_name} is scheduled after {self.sleep_interval} seconds.")
         await asyncio.sleep(self.sleep_interval)
-        asyncio.create_task(self.single_run_and_schedule())
+        self.task = asyncio.create_task(self.single_run_and_schedule())
+        await self.task
 
     def callback_handle(self, future: asyncio.Future):
         exception = future.exception()
