@@ -1,8 +1,9 @@
 ---
-title: Daily-Financial-Report
+title: <TITLE>
 categories: Auto-Reports
 tags:
   - Chinese
   - Financial
   - AutoReports
+  - <TAG>
 ---
