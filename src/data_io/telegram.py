@@ -1,7 +1,7 @@
 import os
 import datetime
 import re
-from .save_to_file import SaveToFileWithID
+from .save_to_file import SaveToFileWithIDInDefaultTS
 from ..scheduler.recursive_scheduler import RecursiveScheduler
 from ..util.logging_to_file import session_logger
 
@@ -58,7 +58,7 @@ class TelegramListener(RecursiveScheduler):
             if os.path.exists(yesterday_path):
                 path = yesterday_path
 
-        file_storage = SaveToFileWithID(path)
+        file_storage = SaveToFileWithIDInDefaultTS(path)
         previous_messages = file_storage.load_with_id()
 
         all_msgs = []
@@ -93,7 +93,7 @@ class TelegramListener(RecursiveScheduler):
     def save(self, msg_id, data):
         now_date = datetime.datetime.now().strftime('%Y-%m-%d')
         path = os.path.join(self.storage_path, now_date+".txt")
-        save_to_file = SaveToFileWithID(path)
+        save_to_file = SaveToFileWithIDInDefaultTS(path)
         save_to_file.save_with_id(msg_id, data)
 
     def clean(self):
