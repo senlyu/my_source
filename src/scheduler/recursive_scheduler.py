@@ -46,18 +46,22 @@ class RecursiveScheduler:
         else:
             Logging.log(f"Scheduled task {self.task_name} finished (unexpected stop).")
 
-    async def start(self):
+    def start(self):
         if self.task is not None and not self.task.done():
             Logging.log(f"{self.task_name} is scheduled.")
             return
 
         Logging.log(f"Start Scheduling {self.task_name}")
+        self.task = asyncio.create_task(self.start_scheduling())
+        self.task.add_done_callback(self.callback_handle)        
+        Logging.log(f"Scheduling {self.task_name} started.")
+        return self.task
+    
+    async def start_scheduling(self):
         await self.init_work()
         if self.pre_wait:
             Logging.log(f"{self.task_name} will start after {self.sleep_interval} seconds")
             await asyncio.sleep(self.sleep_interval)
         self.task = asyncio.create_task(self.single_run_and_schedule())
         self.task.add_done_callback(self.callback_handle)
-        
-        Logging.log(f"Scheduling {self.task_name} started.")
-        return self.task
+        await self.task

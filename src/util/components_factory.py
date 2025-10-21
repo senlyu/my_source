@@ -31,10 +31,10 @@ class ComponentsFactory:
         discord_channel_url = config.get_discord_config()
         return DiscordExporter(discord_channel_url)
 
-    def init_hexo_exporter_from_config(self):
+    def init_hexo_exporter_from_config(self, report_title=None, tag=None):
         config = self.config
         (path, post_path, url_domain, upload_command, command_path) = config.get_hexo_config()
-        return HexoExporter(path, post_path, url_domain, upload_command, command_path)
+        return HexoExporter(path, post_path, url_domain, upload_command, command_path, report_title, tag)
 
     def init_gemini_connect_key_manager_from_config(self):
         config = self.config
@@ -46,23 +46,23 @@ class ComponentsFactory:
         gemini_keys = config.get_gemini_key_manager()
         return KeyManager(gemini_keys, 1) # use one because token size limit
 
-    def init_report_job_to_hexo(self):
+    def init_report_job_to_hexo(self, report_title=None, report_time="18:00:00", start_ts=None, end_ts=None, tag=None):
         config = self.config
         storage_path = config.get_storage_path_telegram()
-        report_time = "18:00:00"
         trigger_time = (datetime.now()+timedelta(seconds=10)).strftime("%H:%M:%S") if get_is_dev_mode() else report_time
 
         pst = pytz.timezone('US/Pacific')
         today_day = datetime.now(pst).date()
         target_time_hms = datetime.strptime(report_time, "%H:%M:%S").time()
         target_time_ts = pst.localize(datetime.combine(today_day, target_time_hms)).timestamp()
+        end_ts = target_time_ts if end_ts is None else end_ts
         return ReportJob(
-            "hexo report", 
+            "hexo report: " + report_title if report_title is not None else "", 
             trigger_time, 
-            self.init_hexo_exporter_from_config(), 
+            self.init_hexo_exporter_from_config(report_title, tag), 
             self.init_gemini_connect_key_manager_from_config(), 
             storage_path, 
             self.init_discord_exporter_from_config(),
-            None,
-            target_time_ts,
+            start_ts,
+            end_ts,
         )
