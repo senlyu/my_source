@@ -24,6 +24,7 @@ if __name__ == "__main__":
     modes_mapping = {
         "dev_listener": dev_on_listener,
         "dev_reporter": dev_on_reporter,
+        "dev_model": dev_on_reporter,
         "dev": main,
         "prod": main,
     }

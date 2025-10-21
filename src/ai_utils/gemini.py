@@ -3,7 +3,7 @@ from google.genai.errors import APIError
 import os
 import time
 import datetime
-from ..util.logging_to_file import session_logger
+from ..util.logging_to_file import create_session_id, reset_session_id, session_logger
 from ..data_io.save_to_file import SaveToFile, hash_data_40_chars
 
 Logging = session_logger
@@ -13,29 +13,37 @@ class GeminiConnect:
     BACKUP_MODEL = "gemini-2.5-flash"
     BACKUP_MODEL_2 = "gemini-2.0-flash"
 
-    def __init__(self, api_key, history=None):
-        self.api_key = api_key
+    def __init__(self, key_manager, history=None):
         self.history = history
+        self.key_manager = key_manager
         self.clean_history()
 
-    async def get_result_from_model_with_files_async_text(self, prompt, doc_paths, model_name):
+    def data_load_from_path(self, doc_paths):
         doc_data_parts = []
         for doc_path in doc_paths:
             with open(doc_path, "r", encoding="utf-8") as doc_file:
                 txt_data = doc_file.read()
                 doc_data_parts.append(txt_data)
-        doc_data = "".join(doc_data_parts)
-        Logging.log("[deprecated] use single api_key")
-        client = genai.Client(api_key=self.api_key)
-        response = await client.aio.models.generate_content(
-            model=model_name,
-            contents=[
-                doc_data,
-                prompt.get_prompt(),
-            ]
-        )
+        return "".join(doc_data_parts)
 
-        return response
+    async def get_result_from_model_with_files_async_text(self, prompt, other_data, model_name):
+        try:
+            Logging.log("Try to get api_key for continue...")
+            api_key = await self.key_manager.get_key_and_wait()
+            Logging.log("api_key get, start request")
+
+            client = genai.Client(api_key=api_key)
+            response = await client.aio.models.generate_content(
+                model=model_name,
+                contents=[
+                    *other_data,
+                    prompt.get_prompt(),
+                ]
+            )
+            return response
+        finally:
+            self.key_manager.release_key(api_key)
+            Logging.log("api_key released")
 
     def load_from_history(self, prompt, doc_paths, model_name):
         if not hasattr(self, "history"):
@@ -77,21 +85,21 @@ class GeminiConnect:
                     Logging.log(e)
                     continue
 
-    async def get_result_from_model_by_type(self, prompt, doc_paths, model_type, validation_needed=False):
-        req = { "model": model_type,  "doc_paths": doc_paths, "prompt": prompt.get_prompt() }
+    async def get_result_from_model_by_type(self, prompt, other_data, data_configs, model_type, validation_needed=False):
+        req = { "model": model_type,  "configs": data_configs, "prompt": prompt.get_prompt() }
         txt = None
         usage_metadata = None
 
         # try cache
-        data = self.load_from_history(prompt, doc_paths, model_type)
-        if data is not None:
+        previous_res = self.load_from_history(prompt, data_configs, model_type)
+        if previous_res is not None:
             Logging.log(f"{model_type} find result from cache")
-            txt = data
+            txt = previous_res
         else:
             # try model
             try:
                 Logging.log(f"Start to get model result: {req}")
-                response = await self.get_result_from_model_with_files_async_text(prompt, doc_paths, model_type)
+                response = await self.get_result_from_model_with_files_async_text(prompt, other_data, model_type)
                 txt = response.text
                 usage_metadata = response.usage_metadata
                 if validation_needed:
@@ -109,20 +117,20 @@ class GeminiConnect:
             
             if (txt!="" and txt is not None):
                 Logging.log(f"{model_type} return results")
-                self.save_to_history(txt, prompt, doc_paths, model_type)
+                self.save_to_history(txt, prompt, data_configs, model_type)
         
         return ({"txt": txt, "usage_metadata": usage_metadata}, req)
 
 
-    async def get_result_from_models(self, prompt, doc_paths):
+    async def get_result_from_models(self, prompt, other_data, data_related_configs):
         # try expensive model
-        (result, req) = await self.get_result_from_model_by_type(prompt, doc_paths, self.EXPENSIVE_MODEL, True)
+        (result, req) = await self.get_result_from_model_by_type(prompt, other_data, data_related_configs, self.EXPENSIVE_MODEL, True)
         if result["txt"] is not None and result["txt"] != "":
             return (result, req)
         
         # try bakcup model with format enforcement
         for i in range(5):
-            (result, req) = await self.get_result_from_model_by_type(prompt, doc_paths, self.BACKUP_MODEL, True)
+            (result, req) = await self.get_result_from_model_by_type(prompt, other_data, data_related_configs, self.BACKUP_MODEL, True)
             if result["txt"] is not None and result["txt"] != "":
                 return (result, req)
             
@@ -130,41 +138,22 @@ class GeminiConnect:
 
         # try backup model without format enforcement
         for i in range(5):
-            (result, req) = await self.get_result_from_model_by_type(prompt, doc_paths, self.BACKUP_MODEL_2, False)
+            (result, req) = await self.get_result_from_model_by_type(prompt, other_data, data_related_configs, self.BACKUP_MODEL_2, False)
             if result["txt"] is not None and result["txt"] != "":
                 return (result, req)
             
             time.sleep(2**i * 30) #retry
 
-class GeminiConnectKeyManager(GeminiConnect):
-    def __init__(self, key_manager, history=None):
-        super().__init__("", history)
-        self.key_manager = key_manager
-        self.history = history
-        self.clean_history()
-
-    async def get_result_from_model_with_files_async_text(self, prompt, doc_paths, model_name):
-        doc_data_parts = []
-        for doc_path in doc_paths:
-            with open(doc_path, "r", encoding="utf-8") as doc_file:
-                txt_data = doc_file.read()
-                doc_data_parts.append(txt_data)
-        doc_data = "".join(doc_data_parts)
-
+    async def get_standard_result_from_model(self, prompt, all_msgs, data_configs):
+        token = create_session_id()
         try:
-            Logging.log("Try to get api_key for continue...")
-            api_key = await self.key_manager.get_key_and_wait()
-            Logging.log("api_key get, start request")
-
-            client = genai.Client(api_key=api_key)
-            response = await client.aio.models.generate_content(
-                model=model_name,
-                contents=[
-                    doc_data,
-                    prompt.get_prompt(),
-                ]
-            )
-            return response
+            (result, req) = await self.get_result_from_models(prompt, all_msgs, data_configs)
+            Logging.log(req)
+            Logging.log(result)
+            Logging.log(f"{req["model"]}")
+            Logging.log(f"{result["usage_metadata"]}")
+            result = prompt.header() + prompt.get_formated_result(result["txt"])
         finally:
-            self.key_manager.release_key(api_key)
-            Logging.log("api_key released")
+            reset_session_id(token)
+
+        return result
