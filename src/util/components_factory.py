@@ -36,17 +36,17 @@ class ComponentsFactory:
         (path, post_path, url_domain, upload_command, command_path) = config.get_hexo_config()
         return HexoExporter(path, post_path, url_domain, upload_command, command_path, report_title, tag)
 
-    def init_gemini_connect_key_manager_from_config(self):
+    def init_gemini_connect_key_manager_from_config(self, key_manager):
         config = self.config
         (_, gemini_history) = config.get_gemini_config()
-        return GeminiConnect(self.init_gemini_key_manager_from_config(), gemini_history)
+        return GeminiConnect(key_manager, gemini_history)
 
     def init_gemini_key_manager_from_config(self):
         config = self.config
         gemini_keys = config.get_gemini_key_manager()
         return KeyManager(gemini_keys, 1) # use one because token size limit
 
-    def init_report_job_to_hexo(self, report_title=None, report_time="18:00:00", start_ts=None, end_ts=None, tag=None):
+    def init_report_job_to_hexo(self, key_manager, report_title=None, report_time="18:00:00", start_ts=None, end_ts=None, tag=None):
         config = self.config
         storage_path = config.get_storage_path_telegram()
         trigger_time = (datetime.now()+timedelta(seconds=10)).strftime("%H:%M:%S") if get_is_dev_mode() else report_time
@@ -60,7 +60,7 @@ class ComponentsFactory:
             "hexo report: " + report_title if report_title is not None else "", 
             trigger_time, 
             self.init_hexo_exporter_from_config(report_title, tag), 
-            self.init_gemini_connect_key_manager_from_config(), 
+            self.init_gemini_connect_key_manager_from_config(key_manager), 
             storage_path, 
             self.init_discord_exporter_from_config(),
             start_ts,
