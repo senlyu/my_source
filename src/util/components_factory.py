@@ -24,7 +24,7 @@ class ComponentsFactory:
         pathlib.Path(storage_path).mkdir(parents=True, exist_ok=True) 
         common_telegram_client = TelegramClient(telegram_client_name, telegram_app_id, telegram_app_hash)
 
-        return [TelegramListener(common_telegram_client, storage_path, channel, 5*60 if not get_is_dev_mode() else 10) for channel in telegram_channels]
+        return [TelegramListener(common_telegram_client, storage_path, channel, 60 if not get_is_dev_mode() else 10) for channel in telegram_channels]
 
     def init_discord_exporter_from_config(self):
         config = self.config
