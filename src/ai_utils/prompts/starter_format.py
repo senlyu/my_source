@@ -26,3 +26,28 @@ class StarterFormat(PromptFormatBase):
                 return (None, True)
         except Exception as e:
             return (e, False)
+        
+class StarterFormatV2(PromptFormatBase):
+    PROMPT_FORMAT_SP = "在回答的第一个大标题前面增加<start>作为标志"
+
+    @staticmethod
+    def get_format_prompt():
+        return StarterFormatV2.PROMPT_FORMAT_SP
+    
+    @staticmethod
+    def make_standard(txt):
+        Logging.log(txt)
+        index = txt.find("<start>")
+        txt = txt[index+7:]
+        return txt
+
+    @staticmethod
+    def format_validate(txt):
+        try:
+            index = txt.find("<start>")
+            if index == -1:
+                raise ValueError("format not match, no <start>")
+            else:
+                return (None, True)
+        except Exception as e:
+            return (e, False)
