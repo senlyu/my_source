@@ -42,10 +42,10 @@ class DataLoader:
 
     @staticmethod
     def get_all_dates(start_ts, end_ts):
-        start_date_obj = datetime.fromtimestamp(start_ts)
-        end_date_obj = datetime.fromtimestamp(end_ts)
+        start_date_obj = datetime.fromtimestamp(start_ts).date()
+        end_date_obj = datetime.fromtimestamp(end_ts).date()
         date_diff = (end_date_obj - start_date_obj).days
-        # *** Key change: Add + 1 to the range length ***
+        # Add + 1 to the range length
         all_dates = [
             start_date_obj + timedelta(days=i) 
             for i in range(date_diff + 1)

@@ -5,7 +5,6 @@ from datetime import datetime, timedelta
 import pytz
 from telethon import TelegramClient
 from src.ai_utils.key_manager import KeyManager
-from src.ai_utils.token_split_gemini import TokenSplitGemini
 from ..data_io.telegram import TelegramListener
 from ..ai_utils.gemini import GeminiConnect
 from ..core.report_job import ReportJob
@@ -40,7 +39,7 @@ class ComponentsFactory:
     def init_gemini_connect_key_manager_from_config(self, key_manager):
         config = self.config
         (_, gemini_history) = config.get_gemini_config()
-        return TokenSplitGemini(key_manager, gemini_history)
+        return GeminiConnect(key_manager, gemini_history)
 
     def init_gemini_key_manager_from_config(self):
         config = self.config
