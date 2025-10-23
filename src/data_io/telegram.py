@@ -1,3 +1,4 @@
+import asyncio
 import os
 import datetime
 import re
@@ -6,6 +7,7 @@ from ..scheduler.recursive_scheduler import RecursiveScheduler
 from ..util.logging_to_file import session_logger
 
 Logging = session_logger
+connection_lock = asyncio.Lock()
 
 class TelegramListener(RecursiveScheduler):
     def __init__(self, client, storage_path, channel_name, query_time=60*5):
@@ -16,7 +18,8 @@ class TelegramListener(RecursiveScheduler):
 
     async def init_work(self):
         self.clean()
-        await self.connect()
+        async with connection_lock:
+            await self.connect()
 
     async def main(self):
         await self.connect()
