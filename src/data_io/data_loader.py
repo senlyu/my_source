@@ -15,7 +15,7 @@ class DataLoader:
             "start_ts": start_ts,
             "end_ts": end_ts,
         }
-        return "".join(all_msgs), data_configs
+        return all_msgs, data_configs
 
     @staticmethod
     def get_msgs_from_multiple_path_filtering_by_ts_range(storage_path, start_ts, end_ts):
@@ -42,10 +42,10 @@ class DataLoader:
 
     @staticmethod
     def get_all_dates(start_ts, end_ts):
-        start_date_obj = datetime.fromtimestamp(start_ts)
-        end_date_obj = datetime.fromtimestamp(end_ts)
+        start_date_obj = datetime.fromtimestamp(start_ts).date()
+        end_date_obj = datetime.fromtimestamp(end_ts).date()
         date_diff = (end_date_obj - start_date_obj).days
-        # *** Key change: Add + 1 to the range length ***
+        # Add + 1 to the range length
         all_dates = [
             start_date_obj + timedelta(days=i) 
             for i in range(date_diff + 1)
@@ -54,7 +54,8 @@ class DataLoader:
     
     @staticmethod
     def get_all_paths(storage_path, start_ts, end_ts):
-        full_paths_for_sub_folders = [os.path.join(storage_path, '@fnnew')] # token too large if contains all channels
+        # full_paths_for_sub_folders = [os.path.join(storage_path, '@fnnew')] # token too large if contains all channels
+        full_paths_for_sub_folders = DataLoader.find_direct_folders_os(storage_path)
         all_record_file_names = DataLoader.get_all_dates(start_ts, end_ts)
 
         res = []
