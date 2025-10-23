@@ -32,4 +32,9 @@ class TokenSplit:
                 if len(req_set) == 9:
                     break
 
+        if len(req_set) != 9:
+            batch_config = data_configs.copy()
+            batch_config['batch'] = len(req_set)
+            req_set.append(([current_set.copy()], batch_config))
+
         return req_set
