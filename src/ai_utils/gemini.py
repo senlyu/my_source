@@ -147,7 +147,7 @@ class GeminiConnect:
     async def get_standard_result_from_model(self, prompt, all_msgs, data_configs):
         token = create_session_id()
         try:
-            (result, req) = await self.get_result_from_models(prompt, all_msgs, data_configs)
+            (result, req) = await self.get_result_from_models(prompt, ["".join(all_msgs[0])], data_configs)
             Logging.log(req)
             Logging.log(result)
             Logging.log(f"{req["model"]}")
