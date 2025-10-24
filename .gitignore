@@ -5,3 +5,4 @@ my-client.session-journal
 log.txt
 /log
 .python-version
+my_source.code-workspace
