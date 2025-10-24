@@ -10,8 +10,8 @@ def find_time_helper():
     today_day = datetime.now(pst).date()
     yst_day = today_day - timedelta(days=1)
     yst_3pm_ts = pst.localize(datetime.combine(yst_day, datetime.strptime("15:00:00", "%H:%M:%S").time())).timestamp()
-    t_8am_ts = pst.localize(datetime.combine(today_day, datetime.strptime("08:00:00", "%H:%M:%S").time())).timestamp()
-    return yst_3pm_ts, t_8am_ts
+    t_6am_ts = pst.localize(datetime.combine(today_day, datetime.strptime("06:00:00", "%H:%M:%S").time())).timestamp()
+    return yst_3pm_ts, t_6am_ts
 
 async def gen_listeners(config):
     factory = ComponentsFactory(config)
@@ -25,11 +25,11 @@ async def gen_reporters(config):
     key_manager = factory.init_gemini_key_manager_from_config()
     # upload task
     # discord_job = factory.init_report_job_to_discord()
-    yst_3pm_ts, t_8am_ts = find_time_helper()
+    yst_3pm_ts, t_6am_ts = find_time_helper()
     # from 3pm - 9am
-    hexo_market_open_report = factory.init_report_job_to_hexo(key_manager, "Daily_Financial_Market_Open_Report", "09:00:00", yst_3pm_ts, None, "MarketOpen")
+    hexo_market_open_report = factory.init_report_job_to_hexo(key_manager, "Daily_Financial_Market_Open_Report", "06:00:00", yst_3pm_ts, None, "MarketOpen")
     # from 8am - 4PM
-    hexo_market_close_report = factory.init_report_job_to_hexo(key_manager, "Daily_Financial_Market_Close_Report", "16:00:00", t_8am_ts, None, "MarketClose")
+    hexo_market_close_report = factory.init_report_job_to_hexo(key_manager, "Daily_Financial_Market_Close_Report", "16:00:00", t_6am_ts, None, "MarketClose")
     return [
         # await discord_job.start(), 
         hexo_market_open_report.start(),
