@@ -1,5 +1,8 @@
 import asyncio
-from ..util.logging_to_file import Logging, create_session_id, reset_session_id
+from ..util.logging_standard import DefaultLogger as Logging
+from ..util.session_context import SessionIDHelper
+
+logger = Logging.getLogger("recursive_scheduler")
 
 class RecursiveScheduler:
     
@@ -16,22 +19,23 @@ class RecursiveScheduler:
         raise NotImplementedError()
         
     def error_handle(self, e: Exception):
-        Logging.error(e)
+        logger.error(e)
     
     def update_sleep_interval(self):
         return self.sleep_interval
 
     async def single_run_and_schedule(self):
-        token = create_session_id()
+        session = SessionIDHelper()
+        session.create_session_id()
         try:
             await self.main()
         except Exception as e:
             self.error_handle(e)
         finally:
-            reset_session_id(token)
+            session.reset_session_id()
         
         self.sleep_interval = self.update_sleep_interval()
-        Logging.log(f"{self.task_name} is scheduled after {self.sleep_interval} seconds.")
+        logger.info(f"{self.task_name} is scheduled after {self.sleep_interval} seconds.")
         await asyncio.sleep(self.sleep_interval)
         self.task = asyncio.create_task(self.single_run_and_schedule())
         await self.task
@@ -40,27 +44,27 @@ class RecursiveScheduler:
         exception = future.exception()
         if exception:
             if isinstance(exception, asyncio.CancelledError):
-                Logging.log(f"Scheduled task {self.task_name} explicitly cancelled and stopped.")
+                logger.info(f"Scheduled task {self.task_name} explicitly cancelled and stopped.")
             else:
-                Logging.log(f"Scheduled task {self.task_name} failed with unhandled exception: {exception}")
+                logger.info(f"Scheduled task {self.task_name} failed with unhandled exception: {exception}")
         else:
-            Logging.log(f"Scheduled task {self.task_name} finished (unexpected stop).")
+            logger.info(f"Scheduled task {self.task_name} finished (unexpected stop).")
 
     def start(self):
         if self.task is not None and not self.task.done():
-            Logging.log(f"{self.task_name} is scheduled.")
+            logger.info(f"{self.task_name} is scheduled.")
             return
 
-        Logging.log(f"Start Scheduling {self.task_name}")
+        logger.info(f"Start Scheduling {self.task_name}")
         self.task = asyncio.create_task(self.start_scheduling())
         self.task.add_done_callback(self.callback_handle)        
-        Logging.log(f"Scheduling {self.task_name} started.")
+        logger.info(f"Scheduling {self.task_name} started.")
         return self.task
     
     async def start_scheduling(self):
         await self.init_work()
         if self.pre_wait:
-            Logging.log(f"{self.task_name} will start after {self.sleep_interval} seconds")
+            logger.info(f"{self.task_name} will start after {self.sleep_interval} seconds")
             await asyncio.sleep(self.sleep_interval)
         self.task = asyncio.create_task(self.single_run_and_schedule())
         self.task.add_done_callback(self.callback_handle)

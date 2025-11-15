@@ -1,6 +1,6 @@
 from .prompt_base import PromptFormatBase
-from ...util.logging_to_file import session_logger
-Logging = session_logger
+from ...util.logging_standard import DefaultLogger as Logging
+logger = Logging.getLogger(__name__)
 
 class StarterFormat(PromptFormatBase):
     PROMPT_FORMAT_SP = "正文部分开始之前用另起一行的<start>做提示，不要用‘作为美股分析师，我为您总结了xxx’等任何语句作为开头。直接以一个标题开始"
@@ -11,7 +11,7 @@ class StarterFormat(PromptFormatBase):
     
     @staticmethod
     def make_standard(txt):
-        Logging.log(txt)
+        logger.debug(txt)
         index = txt.find("<start>")
         txt = txt[index+7:]
         return txt
@@ -36,7 +36,7 @@ class StarterFormatV2(PromptFormatBase):
     
     @staticmethod
     def make_standard(txt):
-        Logging.log(txt)
+        logger.debug(txt)
         index = txt.find("<start>")
         txt = txt[index+7:]
         return txt

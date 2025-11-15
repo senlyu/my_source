@@ -2,8 +2,8 @@ import json
 import os
 import hashlib
 import time
-from ..util.logging_to_file import session_logger
-Logging = session_logger
+from ..util.logging_standard import DefaultLogger as Logging
+logger = Logging.getLogger(__name__)
 
 class SaveToFile:
     def __init__(self, file_name):
@@ -31,7 +31,7 @@ class SaveToFile:
                 data = f.read()
                 f.close()
         except Exception as e:
-            Logging.log(e)
+            logger.error(e)
             data = ""
         return data
 
@@ -46,7 +46,7 @@ class SaveToFile:
                 lines = f.readlines()
                 f.close()
         except Exception as e:
-            Logging.log(e)
+            logger.error(e)
             lines = []
         return lines
     

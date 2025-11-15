@@ -4,9 +4,9 @@ import datetime
 import re
 from .save_to_file import SaveToFileWithIDInDefaultTS
 from ..scheduler.recursive_scheduler import RecursiveScheduler
-from ..util.logging_to_file import session_logger
+from ..util.logging_standard import DefaultLogger as Logging
 
-Logging = session_logger
+logger = Logging.getLogger(__name__)
 connection_lock = asyncio.Lock()
 
 class TelegramListener(RecursiveScheduler):
@@ -27,12 +27,12 @@ class TelegramListener(RecursiveScheduler):
         filtered = self.filter(all_msg, previous_messages)
         for message in filtered:
             self.save(message[0], message[1])
-        Logging.log(f"finished one job, saved {len(filtered)} messages")
+        logger.debug(f"finished one job, saved {len(filtered)} messages")
         
     async def connect(self):
         if not self.client.is_connected():
             await self.client.start()
-            Logging.log('connected')
+            logger.info('connected')
 
     async def query_by_date(self, date):
         yesterday = date - datetime.timedelta(days=1)
@@ -68,13 +68,13 @@ class TelegramListener(RecursiveScheduler):
         if len(previous_messages) > 0:
             sorted_messages = sorted(previous_messages, key=lambda x: x[0], reverse=True)
             max_id = sorted_messages[0][0]
-            Logging.log('query by max_id')
+            logger.debug('query by max_id')
             all_msgs = await self.query_min_id(max_id)
         else:
-            Logging.log('query some')
+            logger.debug('query some')
             all_msgs = await self.query_some()
 
-        Logging.log("finished one query")
+        logger.debug("finished one query")
         return all_msgs, previous_messages
 
     def filter(self, all_msgs, previous_messages):
@@ -114,14 +114,14 @@ class TelegramListener(RecursiveScheduler):
             try:
                 date_obj_file = datetime.datetime.strptime(date_in_file, '%Y-%m-%d')
             except Exception as e:
-                Logging.log(e)
+                logger.error(e)
                 continue
             
             if date_obj_file + datetime.timedelta(days=30) < datetime.datetime.now():
                 delete_targets.append(item[1])
         for full_path in delete_targets:
             os.remove(full_path)
-            Logging.log(f"remove file: {full_path}")
+            logger.info(f"remove file: {full_path}")
 
     def filter_by_channel_type(self, channel, messages):
         if channel == "@fnnew":
@@ -154,7 +154,7 @@ class TelegramListener(RecursiveScheduler):
                     filtered.append(message)
 
             except Exception as e:
-                Logging.log(e)
+                logger.error(e)
                 filtered.append(message)
 
         return filtered

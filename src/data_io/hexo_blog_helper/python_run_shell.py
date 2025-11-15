@@ -1,8 +1,8 @@
 from typing import final
 import subprocess
 import os
-from ...util.logging_to_file import session_logger
-Logging = session_logger
+from ...util.logging_standard import DefaultLogger as Logging
+logger = Logging.getLogger(__name__)
 
 @final
 class PythonRunShell:
@@ -23,11 +23,11 @@ class PythonRunShell:
                 text=True, # Decode the output as text
                 env=my_env
             )
-            Logging.log("Command executed successfully.")
-            Logging.log("Output:")
-            Logging.log(result.stdout)
+            logger.info("Command executed successfully.")
+            logger.info("Output:")
+            logger.info(result.stdout)
 
         except subprocess.CalledProcessError as e:
-            Logging.log(f"Command failed with return code {e.returncode}")
-            Logging.log("Error:")
-            Logging.log(e.stderr)
+            logger.error(f"Command failed with return code {e.returncode}")
+            logger.error("Error:")
+            logger.error(e.stderr)

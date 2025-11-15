@@ -7,10 +7,11 @@ from src.util.sys_env import get_mode
 from ..scheduler.target_time_job import TargetTimeJob
 import pytz
 from datetime import datetime, time
-from ..util.logging_to_file import create_session_id, reset_session_id, session_logger
+from ..util.logging_standard import DefaultLogger as Logging
+from ..util.session_context import SessionIDHelper
 from ..ai_utils.prompts.gemini_prompt import FinancePromptFirstPart, FinancePromptSecondPart, FinancePromptThirdPart, FinancePromptFourthPart, FinancePromptFifthPart
 
-Logging = session_logger
+logger = Logging.getLogger(__name__)
 
 class ReportJob(TargetTimeJob):
     COMBINE_PROMOT = CombinePrompt()
@@ -42,10 +43,10 @@ class ReportJob(TargetTimeJob):
     async def main(self):
         pst = pytz.timezone('US/Pacific')
         now = datetime.now(pst).strftime("%m-%d-%H:%M:%S")
-        Logging.log(f"{now} my source daily job start")
+        logger.info(f"{now} my source daily job start")
 
         all_msgs, data_configs = DataLoader.get_msg_and_config_from_multiple_path_filtering_by_ts_range(self.storage_path, self.start_ts, self.end_ts)
-        Logging.log(all_msgs)
+        logger.info(all_msgs)
 
         result = await ReportJob.get_token_split_for_model(self.analyzer, all_msgs, data_configs)
         
@@ -54,11 +55,12 @@ class ReportJob(TargetTimeJob):
             self.link_share_exporter.export("daily updated doc here: " + self.exporter.get_new_post_link())
             
         now = datetime.now(pst).strftime("%m-%d-%H:%M:%S")
-        Logging.log(f"{now} my source daily job end")
+        logger.info(f"{now} my source daily job end")
 
     @staticmethod
     async def standard_msg_process(analyzer, all_msgs, data_configs):
-        token = create_session_id()
+        session = SessionIDHelper()
+        session.create_session_id()
         try:
             model_requests = []
             for prompt in [FinancePromptFirstPart, FinancePromptSecondPart, FinancePromptThirdPart, FinancePromptFourthPart, FinancePromptFifthPart]:
@@ -68,14 +70,14 @@ class ReportJob(TargetTimeJob):
             prompts_results = await asyncio.gather(*model_requests)
             final_result = "\n\n\n".join(prompts_results)
         finally:
-            reset_session_id(token)
+            session.reset_session_id()
 
         return final_result
 
     @staticmethod
     async def get_token_split_for_model(analyzer, all_msgs, data_configs):
         req_sets = TokenSplit.get_split_msgs(all_msgs, data_configs)
-        Logging.log(f"{len(req_sets)} batches we need to process here")
+        logger.info(f"{len(req_sets)} batches we need to process here")
 
         requests = [ ReportJob.standard_msg_process(analyzer, one_set[0], one_set[1]) for one_set in req_sets ]
         all_results = await asyncio.gather(*requests)

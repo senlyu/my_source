@@ -2,8 +2,8 @@ import asyncio
 import time
 from typing import Dict, Any, List
 
-from src.util.logging_to_file import session_logger
-Logging = session_logger
+from src.util.logging_standard import DefaultLogger as Logging
+logger = Logging.getLogger(__name__)
 
 class KeyManager:
     def __init__(self, api_keys: List[Dict[str, Any]], rpm: int):
@@ -36,7 +36,7 @@ class KeyManager:
                         self.current_key_index = (self.current_key_index + 1) % len(self.keys_list)
                         continue
 
-                    Logging.log("try to get a key")
+                    logger.debug("try to get a key")
                     # try get the key, if concurrent case happened will hold
                     # but should not happen since "async with self.manager_lock" above
                     await status['lock'].acquire()
@@ -49,13 +49,13 @@ class KeyManager:
 
                         if wait_time <= 0:
                             # if key could be use right now
-                            Logging.log(f"{key_name} could be use right now, {wait_time} seconds")
+                            logger.debug(f"{key_name} could be use right now, {wait_time} seconds")
                             status['last_request_time'] = current_time
                             self.current_key_index = (self.current_key_index + 1) % len(self.keys_list)
                             return status['value']
                         else:
                             # if key could not be use right now
-                            Logging.log(f"{key_name} could not be use right now, {wait_time} seconds")
+                            logger.debug(f"{key_name} could not be use right now, {wait_time} seconds")
                             status['lock'].release()
                             self.current_key_index = (self.current_key_index + 1) % len(self.keys_list)
                             continue
@@ -77,7 +77,7 @@ class KeyManager:
                 wait_duration = min(earliest_reset_time - current_time, 60) # no need to wait more than 60s if all keys are using
                 
             if wait_duration > 0:
-                Logging.log(f"all keys are not available waiting {wait_duration:.2f} second for next key")
+                logger.debug(f"all keys are not available waiting {wait_duration:.2f} second for next key")
                 await asyncio.sleep(wait_duration)
             else:
                 # if somehow key is available, start again
@@ -88,7 +88,7 @@ class KeyManager:
         for name, status in self.key_status.items():
             if status['value'] == key:
                 lock = status['lock']
-                Logging.log(f"work done key released {name}")
+                logger.debug(f"work done key released {name}")
                 break
         if lock and lock.locked():
             lock.release()

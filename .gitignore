@@ -3,6 +3,8 @@ my-client.session
 my-client.session-journal
 /history
 log.txt
+dev.log
 /log
 .python-version
 my_source.code-workspace
+__pycache__/
