@@ -1,9 +1,9 @@
 import os
 from datetime import datetime, timedelta
 from src.data_io.save_to_file import SaveToFileWithIDInDefaultTS
-from ..util.logging_to_file import session_logger
+from ..util.logging_standard import DefaultLogger as Logging
 
-Logging = session_logger
+logger = Logging.getLogger(__name__)
 
 class DataLoader:
 
@@ -20,7 +20,7 @@ class DataLoader:
     @staticmethod
     def get_msgs_from_multiple_path_filtering_by_ts_range(storage_path, start_ts, end_ts):
         all_path = DataLoader.get_all_paths(storage_path, start_ts, end_ts)
-        Logging.log(f"all path found: {all_path}")
+        logger.info(f"all path found: {all_path}")
 
         all_msgs = []
         for data_path in all_path:

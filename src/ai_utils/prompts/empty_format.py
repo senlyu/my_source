@@ -1,7 +1,6 @@
 from .prompt_base import PromptFormatBase
-from ...util.logging_to_file import session_logger
-Logging = session_logger
-
+from ...util.logging_standard import DefaultLogger as Logging
+logger = Logging.getLogger(__name__)
 class EmptyFormat(PromptFormatBase):
     PROMPT_FORMAT_SP = ""
 
@@ -11,7 +10,7 @@ class EmptyFormat(PromptFormatBase):
     
     @staticmethod
     def make_standard(txt):
-        Logging.log(txt)
+        logger.debug(txt)
         return txt
 
     @staticmethod

@@ -1,6 +1,7 @@
 import math
 
-from ..util.logging_to_file import Logging
+from ..util.logging_standard import DefaultLogger as Logging
+logger = Logging.getLogger(__name__)
 
 SPLIT_TOKEN_SIZE = 100000
 
@@ -12,7 +13,7 @@ class TokenSplit:
         batch_count = math.ceil(total_size / SPLIT_TOKEN_SIZE)
 
         if batch_count > 10:
-            Logging.log(f"too mang information, only can handle less than 10 batchs.... but we have {batch_count}")
+            logger.warning(f"too mang information, only can handle less than 10 batchs.... but we have {batch_count}")
             batch_count = 10
 
         req_set = []

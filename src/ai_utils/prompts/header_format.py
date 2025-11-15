@@ -1,7 +1,7 @@
 from .prompt_base import PromptFormatBase
-from ...util.logging_to_file import session_logger
+from ...util.logging_standard import DefaultLogger as Logging
 import re
-Logging = session_logger
+logger = Logging.getLogger(__name__)
 
 def check_headings(txt):
     h1_found = False
@@ -26,7 +26,7 @@ class HeaderFormat(PromptFormatBase):
     
     @staticmethod
     def make_standard(txt):
-        Logging.log(txt)
+        logger.debug(txt)
         return txt
 
     @staticmethod

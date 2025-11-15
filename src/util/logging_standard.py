@@ -75,8 +75,8 @@ class DefaultLogger:
         new_logger.setLevel(logging_level)
 
         log_handler = LoggingDirectoryHandle(log_path) 
-        file_name = log_handler.get_today_file_name() if not is_dev_mode else os.path.join("./log.log")
-        file_handler = logging.FileHandler(file_name)
+        file_name = log_handler.get_today_file_name() if not is_dev_mode else "dev.log"
+        file_handler = logging.FileHandler(file_name, encoding='utf-8', mode='a')
         
         file_handler.setFormatter(ColoredFileFormatter())
         new_logger.addFilter(ContextSessionFilter())
