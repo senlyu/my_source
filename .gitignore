@@ -6,3 +6,4 @@ log.txt
 /log
 .python-version
 my_source.code-workspace
+__pycache__/
