@@ -85,11 +85,8 @@ class DefaultLogger:
     
     @staticmethod
     def clean(log_path="./log/standard"):
-        is_dev_mode = get_is_dev_mode()
-        if is_dev_mode:
-            file_name = os.path.join("./log.log")
-            if os.path.isfile(file_name):
-                os.remove(file_name)
+        if get_is_dev_mode():
+            open("dev.log", 'w').close()
             return
 
         storage_path = os.path.join(log_path)

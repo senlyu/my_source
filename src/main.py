@@ -1,9 +1,7 @@
 import asyncio
 from .util.tasks import run_tasks, gen_listeners, gen_reporters
 from .util.logging_standard import DefaultLogger as Logging
-from .util.sys_env import get_mode
-
-logger = Logging.getLogger("main")
+from .util.sys_env import get_mode, get_is_dev_mode
 
 CONFIG_FILE = 'config.json'
 
@@ -19,6 +17,8 @@ async def dev_on_reporter():
 if __name__ == "__main__":
     Logging.clean()
     mode = get_mode()
+    
+    logger = Logging.getLogger("main")
     logger.info("-"*100)
     logger.info("my source start with mode: " + mode)
     logger.info("-"*100)
