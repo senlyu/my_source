@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+import logging.handlers
 import logging
 import os
 
@@ -53,30 +53,27 @@ class ColoredFileFormatter(logging.Formatter):
         formatted_message = f"{color}{self.FORMAT}{Colors.RESET}"
         formatter = logging.Formatter(formatted_message, datefmt='%Y-%m-%d %H:%M:%S')
         return formatter.format(record)
-    
-class LoggingDirectoryHandle:
-    def __init__(self, path):
-        self.path = path
-        os.makedirs(self.path, exist_ok=True)
-
-    def get_today_file_name(self):
-        now_date = datetime.now().strftime("%Y-%m-%d")
-        return os.path.join(self.path, now_date + ".log")
-
 
 class DefaultLogger:
     @staticmethod
     def getLogger(app_name="default", logging_level=logging.DEBUG, log_path="./log/standard"):
         is_dev_mode = get_is_dev_mode()
         if is_dev_mode:
-            log_path = "./"
-
+            file_name = "dev.log"
+            file_handler = logging.FileHandler(os.path.join("./", file_name), encoding='utf-8', mode='a')
+        else:
+            os.makedirs(log_path, exist_ok=True)
+            file_handler = logging.handlers.TimedRotatingFileHandler(
+                filename=os.path.join(log_path, "mysource.log"),
+                when='midnight',
+                interval=1,
+                backupCount=30, # Keep 30 days of historical logs
+                encoding='utf-8',
+                utc=False
+            )
+    
         new_logger = logging.getLogger(app_name)
         new_logger.setLevel(logging_level)
-
-        log_handler = LoggingDirectoryHandle(log_path) 
-        file_name = log_handler.get_today_file_name() if not is_dev_mode else "dev.log"
-        file_handler = logging.FileHandler(file_name, encoding='utf-8', mode='a')
         
         file_handler.setFormatter(ColoredFileFormatter())
         new_logger.addFilter(ContextSessionFilter())
@@ -84,34 +81,10 @@ class DefaultLogger:
         return new_logger
     
     @staticmethod
-    def clean(log_path="./log/standard"):
+    def clean():
         if get_is_dev_mode():
             open("dev.log", 'w').close()
             return
-
-        storage_path = os.path.join(log_path)
-        all_file_names = []
-        for root, _, files in os.walk(storage_path):
-            for file in files:
-                if file.lower().endswith('.log'):  # Case-insensitive check
-                    full_path = os.path.join(root, file)
-                    if os.path.isfile(full_path):
-                        all_file_names.append([file, full_path])
-        delete_targets = []
-        for item in all_file_names:
-            file_name = item[0]
-            date_in_file = file_name.split('.')[0]
-            try:
-                date_obj_file = datetime.strptime(date_in_file, '%Y-%m-%d')
-            except Exception as e:
-                print(e)
-                continue
-            
-            if date_obj_file + timedelta(days=30) < datetime.now():
-                delete_targets.append(item[1])
-        for full_path in delete_targets:
-            os.remove(full_path)
-            print(f"remove file: {full_path}")
     
 if __name__ == "__main__":
     logger = DefaultLogger.getLogger("test")
