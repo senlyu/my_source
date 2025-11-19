@@ -8,3 +8,4 @@ dev.log
 .python-version
 my_source.code-workspace
 __pycache__/
+/session
