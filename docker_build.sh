@@ -1,0 +1,1 @@
+docker build --no-cache -t my-source-image -f ./app.dockerfile .
