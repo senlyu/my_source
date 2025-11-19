@@ -35,4 +35,4 @@ USER appuser
 COPY . .
 
 # 定义容器启动时执行的命令 (请根据您的实际主应用文件修改)
-CMD ["python", "-m", "src.main", "prod"]
+CMD ["python", "-m", "src.main", "proddocker"]

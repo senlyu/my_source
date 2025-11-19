@@ -8,7 +8,7 @@ def get_is_dev_mode() -> bool:
     """
     return true if it is dev mode
     """
-    return get_mode() != "prod"
+    return get_mode() != "prod" and get_mode() != "proddocker"
 
 def get_mode() -> str:
     """

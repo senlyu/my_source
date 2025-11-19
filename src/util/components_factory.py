@@ -22,7 +22,7 @@ class ComponentsFactory:
         storage_path = config.get_storage_path_telegram()
 
         pathlib.Path(storage_path).mkdir(parents=True, exist_ok=True) 
-        common_telegram_client = TelegramClient(telegram_client_name, telegram_app_id, telegram_app_hash)
+        common_telegram_client = TelegramClient("/app/session/" + telegram_client_name, telegram_app_id, telegram_app_hash)
 
         return [TelegramListener(common_telegram_client, storage_path, channel, 60 if not get_is_dev_mode() else 10) for channel in telegram_channels]
 
