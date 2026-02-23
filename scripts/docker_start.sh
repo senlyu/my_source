@@ -47,10 +47,13 @@ CONTAINER_NAME="my-source-runner"
 # Get the environment argument (e.g., prod, dev)
 ENVIRONMENT=${1:-prod} # Default to 'prod' if no argument is provided
 
+# Stop and remove the container if it already exists
+docker rm -f my-source-runner 2>/dev/null || true
+
 echo "Starting application in $ENVIRONMENT mode..."
 
 # Run the Docker container
-docker run -d --name "$CONTAINER_NAME" \
+docker run -d --rm --name "$CONTAINER_NAME" \
 -v "$(pwd)/$LOG_DIR:/app/$LOG_DIR" \
 -v "$(pwd)/$HISTORY_DIR:/app/$HISTORY_DIR" \
 -v "$(pwd)/$SESSION_DIR:/app/$SESSION_DIR" \
