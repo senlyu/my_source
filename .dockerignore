@@ -13,14 +13,6 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
-.pytest_cache/
-.coverage
-htmlcov/
-.venv/
-env/
-venv/
-pip-log.txt
-pip-delete-this-directory.txt
 
 # Project specific
 scripts/
