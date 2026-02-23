@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Ensure we are in the project root
+cd "$(dirname "$0")/.."
+
 # Configuration and state directories
 LOG_DIR="log"
 HISTORY_DIR="history"
@@ -16,7 +19,7 @@ fi
 mkdir -p "$LOG_DIR" "$HISTORY_DIR" "$SESSION_DIR"
 
 # Ensure host directories have appropriate permissions for the appuser (UID 1000)
-# This assumes the user running docker_start.sh has permissions to chown these.
+# This assumes the user running scripts/docker_start.sh has permissions to chown these.
 # If the host user is not 1000, this might require adjustment or manual chown.
 # For simplicity, setting ownership to the current user (assuming it's the appuser in the container)
 # You might need to adjust UID/GID based on your host environment

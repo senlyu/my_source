@@ -23,6 +23,7 @@ pip-log.txt
 pip-delete-this-directory.txt
 
 # Project specific
+scripts/
 my_source.code-workspace
 dev.log
 

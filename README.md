@@ -59,16 +59,16 @@ Before running the application, you need to create a `config.json` file in the p
 
 ### Usage
 
-The application can be started using the `start.sh` script. You need to provide the environment as an argument. The available environments are `prod`, `dev`, `dev_listener`, `dev_reporter`, and `dev_model`.
+The application can be started using the `scripts/start.sh` script. You need to provide the environment as an argument. The available environments are `prod`, `dev`, `dev_listener`, `dev_reporter`, and `dev_model`.
 
 For example, to run the application in production mode:
 
 ```bash
-./start.sh prod
+./scripts/start.sh prod
 ```
 
 To run in development mode:
 
 ```bash
-./start.sh dev
+./scripts/start.sh dev
 ```

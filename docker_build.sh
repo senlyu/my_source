@@ -1,1 +1,0 @@
-docker build -t my-source:latest -f ./app.dockerfile .
