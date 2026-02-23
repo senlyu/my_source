@@ -1,2 +1,2 @@
-docker stop my-runner
-docker rm my-runner
+docker stop my-source-runner
+docker rm my-source-runner

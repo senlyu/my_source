@@ -39,7 +39,7 @@ fi
 
 # Define the Docker image name
 DOCKER_IMAGE_NAME="my-source:latest"
-CONTAINER_NAME="my-runner"
+CONTAINER_NAME="my-source-runner"
 
 # Get the environment argument (e.g., prod, dev)
 ENVIRONMENT=${1:-prod} # Default to 'prod' if no argument is provided
@@ -54,4 +54,5 @@ docker run -d --name "$CONTAINER_NAME" \
 -v "$(pwd)/$CONFIG_FILE:/app/$CONFIG_FILE:ro" \
 -v /etc/localtime:/etc/localtime:ro \
 --env APP_ENVIRONMENT="$ENVIRONMENT" \
+--network="host" \
 "$DOCKER_IMAGE_NAME" "$ENVIRONMENT"
