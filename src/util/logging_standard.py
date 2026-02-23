@@ -1,6 +1,7 @@
 import logging.handlers
 import logging
 import os
+import sys
 
 from src.util.session_context import SessionIDHelper
 from src.util.sys_env import get_is_dev_mode
@@ -59,11 +60,10 @@ class DefaultLogger:
     def getLogger(app_name="default", logging_level=logging.DEBUG, log_path="./log/standard"):
         is_dev_mode = get_is_dev_mode()
         if is_dev_mode:
-            file_name = "dev.log"
-            file_handler = logging.FileHandler(os.path.join("./", file_name), encoding='utf-8', mode='a')
+            handler = logging.StreamHandler(sys.stdout)
         else:
             os.makedirs(log_path, exist_ok=True)
-            file_handler = logging.handlers.TimedRotatingFileHandler(
+            handler = logging.handlers.TimedRotatingFileHandler(
                 filename=os.path.join(log_path, "mysource.log"),
                 when='midnight',
                 interval=1,
@@ -75,16 +75,17 @@ class DefaultLogger:
         new_logger = logging.getLogger(app_name)
         new_logger.setLevel(logging_level)
         
-        file_handler.setFormatter(ColoredFileFormatter())
+        handler.setFormatter(ColoredFileFormatter())
         new_logger.addFilter(ContextSessionFilter())
-        new_logger.addHandler(file_handler)
+        new_logger.addHandler(handler)
         return new_logger
     
     @staticmethod
     def clean():
-        if get_is_dev_mode():
-            open("dev.log", 'w').close()
-            return
+        return
+        # if get_is_dev_mode():
+        #     open("dev.log", 'w').close()
+        #     return
     
 if __name__ == "__main__":
     logger = DefaultLogger.getLogger("test")

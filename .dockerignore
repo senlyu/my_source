@@ -1,0 +1,24 @@
+# Data and state
+/history
+/log
+/session
+
+# Configuration and secrets
+config.json
+config.json.*
+.env
+
+# Python artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Project specific
+scripts/
+my_source.code-workspace
+dev.log
+
+# Git
+.git
+.gitignore
