@@ -10,7 +10,7 @@ from ..data_io.save_to_file import SaveToFile, hash_data_40_chars
 logger = Logging.getLogger(__name__)
 
 class GeminiConnect:
-    EXPENSIVE_MODEL = "gemini-2.5-pro"
+    EXPENSIVE_MODEL = "gemini-2.5-flash" #"gemini-2.5-pro"
     BACKUP_MODEL = "gemini-2.5-flash"
     BACKUP_MODEL_2 = "gemini-2.0-flash"
 
