@@ -2,37 +2,60 @@
 # 使用 Python 3.13 基础镜像
 FROM python:3.13-slim AS builder
 
+# 设置环境变量，阻止 Python 写入 .pyc 文件
+ENV PYTHONDONTWRITEBYTECODE 1
+# 设置 Python 输出不缓冲，有助于实时查看日志
+ENV PYTHONUNBUFFERED 1
+
+# 安装必要的系统依赖 (如 build-essential, git 等)
+# 也可以在这里安装 pipenv
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    git \
+    && pip install pipenv \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
 # 设置工作目录
 WORKDIR /app
-
-# 安装 pipenv
-# 需要先安装 pipenv 才能读取 Pipfile.lock
-RUN pip install pipenv
 
 # 复制 Pipfile 和 Pipfile.lock 文件
 # 这是为了利用 Docker 的缓存机制
 COPY Pipfile Pipfile.lock /app/
 
-# 安装依赖
-# --system: 告诉 pipenv 不要创建虚拟环境，直接安装到容器的全局环境
-# --deploy: 确保安装与 Pipfile.lock 完全一致的版本
-# --dev: 如果不需要 dev 依赖，可以移除此参数
+# 安装依赖到临时的虚拟环境或系统路径
+# 这里安装到 /usr/local/lib/python3.13/site-packages
 RUN PIPENV_VENV_IN_PROJECT=off pipenv install --system --deploy 
 
 
-# 1. 创建一个 UID 和 GID 都是 1000 的用户 (替换为您在步骤 1 中查到的数字)
-# -u 1000: 指定用户 ID (UID)
-# -g 134: 指定组 ID (GID)
-RUN groupadd -g 134 appuser && useradd -r -u 1000 -g appuser appuser
+# --- Stage 2: Runtime Stage (精简运行环境) ---
+# 使用相同的基础镜像，但没有构建工具
+FROM python:3.13-slim
 
-# 2. 赋予该用户对工作目录的访问权限
-RUN chown -R appuser:appuser /app
+# 设置环境变量
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+ENV TZ=Asia/Shanghai # 设置时区，根据实际需要调整
 
-# 3. 切换到非 root 用户
+# 创建非 root 用户
+# 使用更常见的 UID/GID 1000:1000
+RUN groupadd -r appuser && useradd -r -u 1000 -g appuser appuser
+
+# 设置工作目录
+WORKDIR /app
+
+# 复制构建阶段安装的依赖
+# 使用 --chown 确保所有权正确
+COPY --from=builder /usr/local/lib/python3.13/site-packages /usr/local/lib/python3.13/site-packages
+COPY --from=builder /usr/local/bin/ /usr/local/bin/
+
+# 切换到非 root 用户
 USER appuser
 
-# 复制应用程序代码和所有共享文件
-COPY . .
+# 复制应用程序代码
+# 使用 --chown 确保所有权正确
+COPY --chown=appuser:appuser . .
 
 # 定义容器启动时执行的命令 (请根据您的实际主应用文件修改)
-CMD ["python", "-m", "src.main", "proddocker"]
+# 注意：config.json 将通过 volume 挂载，而不是复制到镜像中
+CMD ["python", "-m", "src.main"]

@@ -1,6 +1,30 @@
+# Data and state
 /history
 /log
-my_source.code-workspace
-__pycache__/
-dev.log
 /session
+
+# Configuration and secrets
+config.json
+.env
+
+# Python artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+htmlcov/
+.venv/
+env/
+venv/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Project specific
+my_source.code-workspace
+dev.log
+
+# Git
+.git
+.gitignore

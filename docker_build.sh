@@ -1,1 +1,1 @@
-docker build --no-cache -t my-source-image -f ./app.dockerfile .
+docker build -t my-source:latest -f ./app.dockerfile .
