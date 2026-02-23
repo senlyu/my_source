@@ -33,8 +33,8 @@ class ComponentsFactory:
 
     def init_hexo_exporter_from_config(self, report_title=None, tag=None):
         config = self.config
-        (path, post_path, url_domain, upload_command, command_path) = config.get_hexo_config()
-        return HexoExporter(path, post_path, url_domain, upload_command, command_path, report_title, tag)
+        (path, post_path, url_domain, upload_command, command_path, hexo_api) = config.get_hexo_config()
+        return HexoExporter(path, post_path, url_domain, upload_command, command_path, report_title, tag, hexo_api)
 
     def init_gemini_connect_key_manager_from_config(self, key_manager):
         config = self.config

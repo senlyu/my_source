@@ -58,7 +58,8 @@ class Config:
         url_domain = hexo_config.get('url_domain')
         upload_command = hexo_config.get('upload_command')
         command_path = hexo_config.get('command_path')
-        return (path, post_path, url_domain, upload_command, command_path)
+        hexo_api = hexo_config.get('hexo_api')
+        return (path, post_path, url_domain, upload_command, command_path, hexo_api)
     
     def get_gemini_key_manager(self):
         key_manager = self.config.get('key_manager')
