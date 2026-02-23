@@ -5,6 +5,7 @@
 
 # Configuration and secrets
 config.json
+config.json.*
 .env
 
 # Python artifacts

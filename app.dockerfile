@@ -35,14 +35,15 @@ FROM python:3.13-slim
 # 设置环境变量
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
-ENV TZ=Asia/Shanghai # 设置时区，根据实际需要调整
+ENV TZ=America/Los_Angeles
 
 # 创建非 root 用户
 # 使用更常见的 UID/GID 1000:1000
 RUN groupadd -r appuser && useradd -r -u 1000 -g appuser appuser
 
-# 设置工作目录
+# 设置工作目录并确保权限
 WORKDIR /app
+RUN chown appuser:appuser /app
 
 # 复制构建阶段安装的依赖
 # 使用 --chown 确保所有权正确
@@ -58,4 +59,5 @@ COPY --chown=appuser:appuser . .
 
 # 定义容器启动时执行的命令 (请根据您的实际主应用文件修改)
 # 注意：config.json 将通过 volume 挂载，而不是复制到镜像中
-CMD ["python", "-m", "src.main"]
+ENTRYPOINT ["python", "-m", "src.main"]
+CMD ["prod"]
