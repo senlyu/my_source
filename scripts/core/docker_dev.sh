@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Ensure we are in the project root
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/../.."
 
 # Define image and container names
 DOCKER_IMAGE_NAME="mysource-test:latest"

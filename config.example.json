@@ -32,5 +32,8 @@
             {"name": "key_1", "value": "YOUR_GEMINI_KEY_1"},
             {"name": "key_2", "value": "YOUR_GEMINI_KEY_2"}
         ]
+    },
+    "kms": {
+        "port": 4001
     }
 }
