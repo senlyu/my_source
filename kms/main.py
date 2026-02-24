@@ -12,11 +12,11 @@ from kms.key_manager import KeyManager
 from kms.config import KMSConfig
 from kms.utils import hash_data_40_chars
 
+from contextlib import asynccontextmanager
+
 # Setup logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-app = FastAPI(title="Key Manager Standalone Server (KMS)")
 
 # Initialize Config and KeyManager
 config = KMSConfig()
@@ -28,6 +28,42 @@ key_manager = KeyManager(keys, config.get_rpm())
 
 HISTORY_DIR = config.get_history_path()
 os.makedirs(HISTORY_DIR, exist_ok=True)
+
+def clean_old_cache(history_dir: str, days: int = 30):
+    """Delete cache files older than the specified number of days."""
+    if not os.path.exists(history_dir):
+        return
+    
+    logger.info(f"Cleaning old cache in {history_dir} (older than {days} days)")
+    count = 0
+    now = datetime.datetime.now()
+    for filename in os.listdir(history_dir):
+        if not filename.endswith(".json"):
+            continue
+        
+        # Format is YYYY-MM-DD_hash.json
+        date_str = filename[:10]
+        try:
+            file_date = datetime.datetime.strptime(date_str, '%Y-%m-%d')
+            if file_date + datetime.timedelta(days=days) < now:
+                os.remove(os.path.join(history_dir, filename))
+                count += 1
+        except ValueError:
+            # Not a valid date format, skip
+            continue
+        except Exception as e:
+            logger.error(f"Error deleting file {filename}: {e}")
+    
+    if count > 0:
+        logger.info(f"Cleaned {count} old cache files.")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Run cache cleanup on startup
+    clean_old_cache(HISTORY_DIR)
+    yield
+
+app = FastAPI(title="Key Manager Standalone Server (KMS)", lifespan=lifespan)
 
 class CompletionRequest(BaseModel):
     prompt: str
@@ -135,7 +171,10 @@ async def chat_completions(request: CompletionRequest):
 
     except APIError as e:
         logger.error(f"API Error: {e}")
-        return CompletionResponse(status="error", error_code="API_ERROR", error_text=str(e))
+        error_code = "API_ERROR"
+        if "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e):
+            error_code = "RESOURCE_EXHAUSTED"
+        return CompletionResponse(status="error", error_code=error_code, error_text=str(e))
     except Exception as e:
         logger.error(f"Unexpected Error: {e}")
         return CompletionResponse(status="error", error_code="INTERNAL_ERROR", error_text=str(e))

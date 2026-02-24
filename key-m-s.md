@@ -15,7 +15,8 @@ The Key Manager Standalone Server (KMS) is a centralized HTTP service designed t
 - **HTTP API Layer (FastAPI):** Handles incoming requests and provides standardized JSON responses.
 - **Key Manager Core:** An evolved version of the current `KeyManager` using `asyncio` to manage key rotation and wait-time logic.
 - **Model Connector:** Standardized wrappers for calling LLM APIs (e.g., Google GenAI).
-- **Caching Layer:** A file-based or Redis-backed cache for storing and retrieving previous model responses based on input hashes.
+- **Caching Layer:** A file-based cache for storing model responses.
+    - **Retention Policy:** Files are stored as `YYYY-MM-DD_hash.json`. A background cleanup process runs on server startup to delete files older than 30 days.
 
 ### 3.2 Request Flow
 1. Client sends a POST request to KMS with `prompt`, `context`, and optional `model`.
@@ -73,10 +74,10 @@ my_source/
       "total_tokens": 579
     },
     "model_used": "gemini-2.0-flash",
-    "cached": false,
-    "error_code": null,
-    "error_text": null,
-  }
+    "cached": false
+  },
+  "error_code": "RESOURCE_EXHAUSTED | API_ERROR | KEY_ERROR | INTERNAL_ERROR",
+  "error_text": "Detailed error message..."
 }
 ```
 
